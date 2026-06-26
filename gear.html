@@ -15,121 +15,103 @@
       --drift:   #8b6f50;
       --white:   #ffffff;
       --dark:    #2c2c2c;
+      --green:   #3a8c5c;
     }
 
-    body {
-      font-family: 'Lato', sans-serif;
-      background: var(--sand);
-      color: var(--dark);
-    }
+    body { font-family: 'Lato', sans-serif; background: var(--sand); color: var(--dark); }
 
     /* ── NAV ── */
     nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2.5rem;
-      background: var(--ocean);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem; background: var(--ocean);
+      position: sticky; top: 0; z-index: 100;
     }
     nav .logo {
-      font-family: 'Pacifico', cursive;
-      font-size: 1.5rem;
-      color: var(--white);
-      letter-spacing: 0.02em;
-      text-decoration: none;
+      font-family: 'Pacifico', cursive; font-size: 1.5rem;
+      color: var(--white); text-decoration: none;
     }
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-    }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
     nav ul a {
-      color: var(--white);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      opacity: 0.85;
-      transition: opacity 0.2s;
+      color: var(--white); text-decoration: none; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;
+      opacity: 0.85; transition: opacity 0.2s;
     }
     nav ul a:hover, nav ul a.active { opacity: 1; }
 
     /* ── PAGE HEADER ── */
     .page-header {
-      background: var(--ocean);
-      color: var(--white);
-      text-align: center;
-      padding: 3.5rem 2rem 3rem;
+      background: var(--ocean); color: var(--white);
+      text-align: center; padding: 3rem 2rem 2.5rem;
     }
     .page-header h1 {
       font-family: 'Pacifico', cursive;
-      font-size: clamp(2.2rem, 5vw, 3.5rem);
-      margin-bottom: 0.6rem;
+      font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.5rem;
     }
-    .page-header p {
-      font-size: 1.05rem;
-      font-weight: 300;
-      opacity: 0.88;
-    }
+    .page-header p { font-size: 1rem; font-weight: 300; opacity: 0.88; }
 
-    /* ── GEAR CONTENT ── */
-    .gear-page {
-      padding: 4rem 2rem 5rem;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+    /* ── LAYOUT ── */
+    .gear-page { padding: 3.5rem 2rem 5rem; max-width: 1200px; margin: 0 auto; }
 
-    .category-group {
-      margin-bottom: 3.5rem;
-    }
+    .category-group { margin-bottom: 3.5rem; }
     .category-group:last-child { margin-bottom: 0; }
 
     .category-label {
-      font-family: 'Pacifico', cursive;
-      font-size: 1.5rem;
-      color: var(--drift);
-      margin-bottom: 1.2rem;
-      padding-bottom: 0.6rem;
+      font-family: 'Pacifico', cursive; font-size: 1.5rem; color: var(--drift);
+      margin-bottom: 1.2rem; padding-bottom: 0.6rem;
       border-bottom: 2px solid rgba(139,111,80,0.2);
     }
 
+    /* ── PRODUCT CARDS ── */
     .cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.4rem;
     }
 
     .card {
-      background: var(--white);
-      border-radius: 16px;
-      padding: 1.6rem 1.3rem;
-      width: 160px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      background: var(--white); border-radius: 16px; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07);
       transition: transform 0.2s, box-shadow 0.2s;
-      text-align: center;
+      display: flex; flex-direction: column;
     }
-    .card:hover { transform: translateY(-6px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
-    .card .icon { font-size: 2.5rem; margin-bottom: 0.65rem; }
-    .card h3 { font-size: 0.9rem; font-weight: 700; color: var(--ocean); }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
+
+    .card-photo {
+      width: 100%; aspect-ratio: 4/3;
+      background: var(--sand);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+    }
+
+    .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .card-name { font-size: 0.9rem; font-weight: 700; color: var(--dark); line-height: 1.3; }
+
+    .card-pricing { display: flex; flex-direction: column; gap: 0.2rem; margin-top: auto; }
+
+    .price-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+    .price-label { color: #999; font-weight: 400; }
+    .price-value { font-weight: 700; color: var(--dark); }
+
+    .badges { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+
+    .badge {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 50px;
+    }
+    .badge-sale   { background: rgba(224,112,80,0.12); color: var(--coral); }
+    .badge-rent   { background: rgba(42,122,140,0.12); color: var(--ocean); }
 
     /* ── FOOTER ── */
     footer {
-      background: var(--dark);
-      color: rgba(255,255,255,0.55);
-      text-align: center;
-      padding: 2rem;
-      font-size: 0.85rem;
+      background: var(--dark); color: rgba(255,255,255,0.55);
+      text-align: center; padding: 2rem; font-size: 0.85rem;
     }
     footer span { color: var(--coral); }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav>
     <a href="index.html" class="logo">The Rusti Shack</a>
     <ul>
@@ -139,73 +121,573 @@
     </ul>
   </nav>
 
-  <!-- PAGE HEADER -->
   <div class="page-header">
     <h1>Our Gear</h1>
     <p>Everything you need for a perfect day on Apo Island.</p>
   </div>
 
-  <!-- GEAR CATEGORIES -->
   <main class="gear-page">
 
-    <!-- Beach Essentials -->
+    <!-- ── BEACH ESSENTIALS ── -->
     <div class="category-group" id="beach-essentials">
       <div class="category-label">🏖️ Beach Essentials</div>
       <div class="cards">
-        <div class="card"><div class="icon">🏐</div><h3>Beach Balls</h3></div>
-        <div class="card"><div class="icon">🪑</div><h3>Beach Chairs</h3></div>
-        <div class="card"><div class="icon">☂️</div><h3>Umbrellas</h3></div>
-        <div class="card"><div class="icon">🎒</div><h3>Dry Bags</h3></div>
+
+        <div class="card">
+          <div class="card-photo">🏐</div>
+          <div class="card-body">
+            <div class="card-name">Beach Ball Inflatable</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$6.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$1.70/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🪣</div>
+          <div class="card-body">
+            <div class="card-name">Sand Shovel & Bucket Set</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$14.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$2.05/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🌺</div>
+          <div class="card-body">
+            <div class="card-name">Beach Towel Tropical Print</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$24.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$2.71/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🌊</div>
+          <div class="card-body">
+            <div class="card-name">Microfiber Quick-Dry Towel</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$28.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.29/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">☂️</div>
+          <div class="card-body">
+            <div class="card-name">Beach Umbrella 7ft</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$54.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$7.74/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">⛺</div>
+          <div class="card-body">
+            <div class="card-name">Pop-Up Beach Tent</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$89.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$10.40/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🧴</div>
+          <div class="card-body">
+            <div class="card-name">Reef-Safe Sunscreen SPF50</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$19.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🌿</div>
+          <div class="card-body">
+            <div class="card-name">After-Sun Aloe Gel</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$13.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🕶️</div>
+          <div class="card-body">
+            <div class="card-name">Polarized Sunglasses</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$39.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">📱</div>
+          <div class="card-body">
+            <div class="card-name">Waterproof Phone Pouch</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$12.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">👟</div>
+          <div class="card-body">
+            <div class="card-name">Reef Walker Water Shoes</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$38.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.07/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🧊</div>
+          <div class="card-body">
+            <div class="card-name">Cooler Bag Insulated</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">from $44.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$4.85/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Apparel -->
+    <!-- ── APPAREL ── -->
     <div class="category-group" id="apparel">
       <div class="category-label">👕 Apparel</div>
       <div class="cards">
-        <div class="card"><div class="icon">👙</div><h3>Swimwear</h3></div>
-        <div class="card"><div class="icon">🩱</div><h3>Rash Guards</h3></div>
-        <div class="card"><div class="icon">🧤</div><h3>Dive Gloves</h3></div>
-        <div class="card"><div class="icon">🧢</div><h3>Sun Hats</h3></div>
+
+        <div class="card">
+          <div class="card-photo">👕</div>
+          <div class="card-body">
+            <div class="card-name">Tide & Tempo Logo Tee</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$24.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🌴</div>
+          <div class="card-body">
+            <div class="card-name">Apo Island Souvenir Tee</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$26.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🩲</div>
+          <div class="card-body">
+            <div class="card-name">Boardshorts — Mens</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$44.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">👙</div>
+          <div class="card-body">
+            <div class="card-name">Bikini Set — Womens</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$54.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🩱</div>
+          <div class="card-body">
+            <div class="card-name">One-Piece Swimsuit</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$58.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🧥</div>
+          <div class="card-body">
+            <div class="card-name">Rashguard Long Sleeve</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$32.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🧢</div>
+          <div class="card-body">
+            <div class="card-name">UV Hat Wide Brim</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$28.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🩴</div>
+          <div class="card-body">
+            <div class="card-name">Flip Flops Tropical</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$14.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Snorkel & Dive -->
+    <!-- ── SNORKEL & DIVE ── -->
     <div class="category-group" id="snorkel-dive">
       <div class="category-label">🤿 Snorkel & Dive</div>
       <div class="cards">
-        <div class="card"><div class="icon">🤿</div><h3>Snorkels</h3></div>
-        <div class="card"><div class="icon">🥽</div><h3>Masks</h3></div>
-        <div class="card"><div class="icon">🦈</div><h3>Fins</h3></div>
-        <div class="card"><div class="icon">🫁</div><h3>BCD Vests</h3></div>
-        <div class="card"><div class="icon">🔦</div><h3>Dive Lights</h3></div>
+
+        <div class="card">
+          <div class="card-photo">🥽</div>
+          <div class="card-body">
+            <div class="card-name">Reef Explorer Snorkel Mask</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$42.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$4.78/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🤿</div>
+          <div class="card-body">
+            <div class="card-name">Pro Anti-Fog Snorkel Mask</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$58.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$5.51/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🐠</div>
+          <div class="card-body">
+            <div class="card-name">Junior Snorkel Set (Kids)</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$34.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$4.35/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🐬</div>
+          <div class="card-body">
+            <div class="card-name">Adult Snorkel Set</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$64.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$7.01/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">💨</div>
+          <div class="card-body">
+            <div class="card-name">Dry-Top Snorkel</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$28.50</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.02/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🦈</div>
+          <div class="card-body">
+            <div class="card-name">Open-Heel Dive Fins</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$79.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$6.44/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🐟</div>
+          <div class="card-body">
+            <div class="card-name">Travel Snorkel Fins</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$49.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$5.38/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🐡</div>
+          <div class="card-body">
+            <div class="card-name">Kids Swim Fins</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$29.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.15/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🌊</div>
+          <div class="card-body">
+            <div class="card-name">3mm Shorty Wetsuit</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$109.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$10.31/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Surfing -->
+    <!-- ── SURFING ── -->
     <div class="category-group" id="surfing">
       <div class="category-label">🏄 Surfing</div>
       <div class="cards">
-        <div class="card"><div class="icon">🏄</div><h3>Surfboards</h3></div>
-        <div class="card"><div class="icon">🛹</div><h3>Bodyboards</h3></div>
-        <div class="card"><div class="icon">🦺</div><h3>Leashes</h3></div>
+
+        <div class="card">
+          <div class="card-photo">🏄</div>
+          <div class="card-body">
+            <div class="card-name">Beginner Foam Surfboard</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$279.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$15.03/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🌊</div>
+          <div class="card-body">
+            <div class="card-name">7'2 Funboard Surfboard</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$449.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$25.42/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🐚</div>
+          <div class="card-body">
+            <div class="card-name">9'0 Longboard Surfboard</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$599.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$29.91/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🛹</div>
+          <div class="card-body">
+            <div class="card-name">Skim Board Pro</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$89.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$11.62/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🪢</div>
+          <div class="card-body">
+            <div class="card-name">Surf Leash</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$22.50</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🕯️</div>
+          <div class="card-body">
+            <div class="card-name">Surf Wax Tropical</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$5.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🪁</div>
+          <div class="card-body">
+            <div class="card-name">Kitesurf Harness</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$139.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">💨</div>
+          <div class="card-body">
+            <div class="card-name">Beginner Kitesurf Kit</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$1,099.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Fishing -->
+    <!-- ── FISHING ── -->
     <div class="category-group" id="fishing">
       <div class="category-label">🎣 Fishing</div>
       <div class="cards">
-        <div class="card"><div class="icon">🎣</div><h3>Rods & Reels</h3></div>
-        <div class="card"><div class="icon">🪝</div><h3>Tackle & Bait</h3></div>
-        <div class="card"><div class="icon">🪣</div><h3>Bait Buckets</h3></div>
-        <div class="card"><div class="icon">🔱</div><h3>Spear Guns</h3></div>
+
+        <div class="card">
+          <div class="card-photo">🎣</div>
+          <div class="card-body">
+            <div class="card-name">Saltwater Spinning Rod 7ft</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$98.00</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$7.65/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🗜️</div>
+          <div class="card-body">
+            <div class="card-name">Telescopic Travel Rod</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$64.99</span></div>
+              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$6.08/day</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">⚙️</div>
+          <div class="card-body">
+            <div class="card-name">Spinning Reel 4000</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$84.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🧰</div>
+          <div class="card-body">
+            <div class="card-name">Tackle Box Deluxe</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$49.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🦐</div>
+          <div class="card-body">
+            <div class="card-name">Live Bait — Shrimp (lb)</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$6.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🦑</div>
+          <div class="card-body">
+            <div class="card-name">Live Bait — Squid (lb)</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$7.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🪝</div>
+          <div class="card-body">
+            <div class="card-name">Lure Pack Tropical (12pc)</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$22.99</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-photo">🕸️</div>
+          <div class="card-body">
+            <div class="card-name">Cast Net 8ft</div>
+            <div class="card-pricing">
+              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$45.00</span></div>
+            </div>
+            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
   </main>
 
-  <!-- FOOTER -->
   <footer>
     <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
   </footer>
