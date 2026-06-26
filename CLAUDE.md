@@ -70,3 +70,4 @@ Real product photos are planned. The `Rusti-Shack-Images/` folder exists locally
 - Do not add a backend or server-side logic — this is a static site.
 - Do not commit `Data/*.xlsx` changes unless the data has actually been updated.
 - Do not duplicate product data by hand — always read from the Excel file first.
+- **Never put passwords, API keys, or other secrets in code or on GitHub.** Secrets go in environment variables only.
