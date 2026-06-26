@@ -136,54 +136,43 @@
       color: #f9d06e;
     }
 
-    /* ── GEAR CARDS ── */
-    .gear-section {
-      padding: 4rem 2rem;
+    /* ── GEAR TEASER ── */
+    .gear-teaser {
+      padding: 5rem 2rem;
       text-align: center;
+      background: var(--white);
     }
-    .gear-section h2 {
+    .gear-teaser h2 {
       font-family: 'Pacifico', cursive;
       font-size: 2.2rem;
       color: var(--drift);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
     }
-    .gear-section .subtitle {
-      font-size: 1rem;
-      color: #777;
-      margin-bottom: 3rem;
+    .gear-teaser p {
+      font-size: 1.1rem;
       font-weight: 300;
+      color: #666;
+      max-width: 520px;
+      margin: 0 auto 1rem;
+      line-height: 1.7;
     }
-    .category-group {
-      max-width: 1100px;
-      margin: 0 auto 3.5rem;
-    }
-    .category-group:last-child { margin-bottom: 0; }
-    .category-label {
-      font-family: 'Pacifico', cursive;
-      font-size: 1.4rem;
-      color: var(--drift);
-      margin-bottom: 1.2rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid rgba(139,111,80,0.2);
-      text-align: left;
-    }
-    .cards {
+    .category-pills {
       display: flex;
       flex-wrap: wrap;
-      gap: 1.2rem;
+      gap: 0.7rem;
+      justify-content: center;
+      margin: 1.8rem auto 2.5rem;
+      max-width: 600px;
     }
-    .card {
-      background: var(--white);
-      border-radius: 16px;
-      padding: 1.6rem 1.3rem;
-      width: 160px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      transition: transform 0.2s, box-shadow 0.2s;
-      text-align: center;
+    .pill {
+      background: var(--sand);
+      color: var(--drift);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
     }
-    .card:hover { transform: translateY(-6px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
-    .card .icon { font-size: 2.5rem; margin-bottom: 0.65rem; }
-    .card h3 { font-size: 0.9rem; font-weight: 700; color: var(--ocean); }
 
     /* ── FOOTER ── */
     footer {
@@ -202,7 +191,7 @@
   <nav>
     <div class="logo">The Rusti Shack</div>
     <ul>
-      <li><a href="#">Gear</a></li>
+      <li><a href="gear.html">Gear</a></li>
       <li><a href="#">About</a></li>
       <li><a href="#">Find Us</a></li>
     </ul>
@@ -215,7 +204,7 @@
     <p class="hero-sub">
       Your little beach-side stop on paradise — where every great dive day starts.
     </p>
-    <a href="#gear" class="hero-cta">See What We've Got</a>
+    <a href="gear.html" class="hero-cta">See What We've Got</a>
   </section>
 
   <!-- ABOUT STRIP -->
@@ -228,66 +217,18 @@
     </p>
   </section>
 
-  <!-- GEAR CARDS -->
-  <section class="gear-section" id="gear">
+  <!-- GEAR TEASER -->
+  <section class="gear-teaser">
     <h2>What We Rent</h2>
-    <p class="subtitle">Everything you need — nothing you don't.</p>
-
-    <!-- Beach Essentials -->
-    <div class="category-group">
-      <div class="category-label">🏖️ Beach Essentials</div>
-      <div class="cards">
-        <div class="card"><div class="icon">🏐</div><h3>Beach Balls</h3></div>
-        <div class="card"><div class="icon">🪑</div><h3>Beach Chairs</h3></div>
-        <div class="card"><div class="icon">☂️</div><h3>Umbrellas</h3></div>
-        <div class="card"><div class="icon">🎒</div><h3>Dry Bags</h3></div>
-      </div>
+    <p>Everything you need for a perfect day on the water — from snorkels to surfboards, beach chairs to fishing rods.</p>
+    <div class="category-pills">
+      <span class="pill">🏖️ Beach Essentials</span>
+      <span class="pill">👕 Apparel</span>
+      <span class="pill">🤿 Snorkel & Dive</span>
+      <span class="pill">🏄 Surfing</span>
+      <span class="pill">🎣 Fishing</span>
     </div>
-
-    <!-- Apparel -->
-    <div class="category-group">
-      <div class="category-label">👕 Apparel</div>
-      <div class="cards">
-        <div class="card"><div class="icon">👙</div><h3>Swimwear</h3></div>
-        <div class="card"><div class="icon">🩱</div><h3>Rash Guards</h3></div>
-        <div class="card"><div class="icon">🧤</div><h3>Dive Gloves</h3></div>
-        <div class="card"><div class="icon">🧢</div><h3>Sun Hats</h3></div>
-      </div>
-    </div>
-
-    <!-- Snorkel & Dive -->
-    <div class="category-group">
-      <div class="category-label">🤿 Snorkel & Dive</div>
-      <div class="cards">
-        <div class="card"><div class="icon">🤿</div><h3>Snorkels</h3></div>
-        <div class="card"><div class="icon">🥽</div><h3>Masks</h3></div>
-        <div class="card"><div class="icon">🦈</div><h3>Fins</h3></div>
-        <div class="card"><div class="icon">🫁</div><h3>BCD Vests</h3></div>
-        <div class="card"><div class="icon">🔦</div><h3>Dive Lights</h3></div>
-      </div>
-    </div>
-
-    <!-- Surfing -->
-    <div class="category-group">
-      <div class="category-label">🏄 Surfing</div>
-      <div class="cards">
-        <div class="card"><div class="icon">🏄</div><h3>Surfboards</h3></div>
-        <div class="card"><div class="icon">🛹</div><h3>Bodyboards</h3></div>
-        <div class="card"><div class="icon">🦺</div><h3>Leashes</h3></div>
-      </div>
-    </div>
-
-    <!-- Fishing -->
-    <div class="category-group">
-      <div class="category-label">🎣 Fishing</div>
-      <div class="cards">
-        <div class="card"><div class="icon">🎣</div><h3>Rods & Reels</h3></div>
-        <div class="card"><div class="icon">🪝</div><h3>Tackle & Bait</h3></div>
-        <div class="card"><div class="icon">🪣</div><h3>Bait Buckets</h3></div>
-        <div class="card"><div class="icon">🔱</div><h3>Spear Guns</h3></div>
-      </div>
-    </div>
-
+    <a href="gear.html" class="hero-cta">Browse All Gear</a>
   </section>
 
   <!-- FOOTER -->

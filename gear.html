@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gear — The Rusti Shack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:    #f5e9d3;
+      --ocean:   #2a7a8c;
+      --coral:   #e07050;
+      --drift:   #8b6f50;
+      --white:   #ffffff;
+      --dark:    #2c2c2c;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--sand);
+      color: var(--dark);
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: var(--ocean);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav .logo {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+    }
+    nav ul a {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+    nav ul a:hover, nav ul a.active { opacity: 1; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background: var(--ocean);
+      color: var(--white);
+      text-align: center;
+      padding: 3.5rem 2rem 3rem;
+    }
+    .page-header h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      margin-bottom: 0.6rem;
+    }
+    .page-header p {
+      font-size: 1.05rem;
+      font-weight: 300;
+      opacity: 0.88;
+    }
+
+    /* ── GEAR CONTENT ── */
+    .gear-page {
+      padding: 4rem 2rem 5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .category-group {
+      margin-bottom: 3.5rem;
+    }
+    .category-group:last-child { margin-bottom: 0; }
+
+    .category-label {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem;
+      color: var(--drift);
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid rgba(139,111,80,0.2);
+    }
+
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 1.6rem 1.3rem;
+      width: 160px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-align: center;
+    }
+    .card:hover { transform: translateY(-6px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }
+    .card .icon { font-size: 2.5rem; margin-bottom: 0.65rem; }
+    .card h3 { font-size: 0.9rem; font-weight: 700; color: var(--ocean); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.85rem;
+    }
+    footer span { color: var(--coral); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="logo">The Rusti Shack</a>
+    <ul>
+      <li><a href="gear.html" class="active">Gear</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Find Us</a></li>
+    </ul>
+  </nav>
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1>Our Gear</h1>
+    <p>Everything you need for a perfect day on Apo Island.</p>
+  </div>
+
+  <!-- GEAR CATEGORIES -->
+  <main class="gear-page">
+
+    <!-- Beach Essentials -->
+    <div class="category-group">
+      <div class="category-label">🏖️ Beach Essentials</div>
+      <div class="cards">
+        <div class="card"><div class="icon">🏐</div><h3>Beach Balls</h3></div>
+        <div class="card"><div class="icon">🪑</div><h3>Beach Chairs</h3></div>
+        <div class="card"><div class="icon">☂️</div><h3>Umbrellas</h3></div>
+        <div class="card"><div class="icon">🎒</div><h3>Dry Bags</h3></div>
+      </div>
+    </div>
+
+    <!-- Apparel -->
+    <div class="category-group">
+      <div class="category-label">👕 Apparel</div>
+      <div class="cards">
+        <div class="card"><div class="icon">👙</div><h3>Swimwear</h3></div>
+        <div class="card"><div class="icon">🩱</div><h3>Rash Guards</h3></div>
+        <div class="card"><div class="icon">🧤</div><h3>Dive Gloves</h3></div>
+        <div class="card"><div class="icon">🧢</div><h3>Sun Hats</h3></div>
+      </div>
+    </div>
+
+    <!-- Snorkel & Dive -->
+    <div class="category-group">
+      <div class="category-label">🤿 Snorkel & Dive</div>
+      <div class="cards">
+        <div class="card"><div class="icon">🤿</div><h3>Snorkels</h3></div>
+        <div class="card"><div class="icon">🥽</div><h3>Masks</h3></div>
+        <div class="card"><div class="icon">🦈</div><h3>Fins</h3></div>
+        <div class="card"><div class="icon">🫁</div><h3>BCD Vests</h3></div>
+        <div class="card"><div class="icon">🔦</div><h3>Dive Lights</h3></div>
+      </div>
+    </div>
+
+    <!-- Surfing -->
+    <div class="category-group">
+      <div class="category-label">🏄 Surfing</div>
+      <div class="cards">
+        <div class="card"><div class="icon">🏄</div><h3>Surfboards</h3></div>
+        <div class="card"><div class="icon">🛹</div><h3>Bodyboards</h3></div>
+        <div class="card"><div class="icon">🦺</div><h3>Leashes</h3></div>
+      </div>
+    </div>
+
+    <!-- Fishing -->
+    <div class="category-group">
+      <div class="category-label">🎣 Fishing</div>
+      <div class="cards">
+        <div class="card"><div class="icon">🎣</div><h3>Rods & Reels</h3></div>
+        <div class="card"><div class="icon">🪝</div><h3>Tackle & Bait</h3></div>
+        <div class="card"><div class="icon">🪣</div><h3>Bait Buckets</h3></div>
+        <div class="card"><div class="icon">🔱</div><h3>Spear Guns</h3></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
+  </footer>
+
+</body>
+</html>
