@@ -102,6 +102,116 @@
     .badge-sale   { background: rgba(224,112,80,0.12); color: var(--coral); }
     .badge-rent   { background: rgba(42,122,140,0.12); color: var(--ocean); }
 
+    /* ── CARD CURSOR ── */
+    .card { cursor: pointer; }
+
+    /* ── MODAL OVERLAY ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.55);
+      align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--white);
+      border-radius: 20px;
+      width: 100%; max-width: 860px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    /* ── MODAL IMAGES ── */
+    .modal-images {
+      background: var(--sand);
+      display: flex; flex-direction: column;
+      gap: 0.75rem;
+      padding: 1.5rem;
+      border-radius: 20px 0 0 20px;
+    }
+    .modal-img-studio {
+      flex: 2;
+      background: #e8dcc8;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 5rem;
+      min-height: 220px;
+      overflow: hidden;
+    }
+    .modal-img-studio img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+    .modal-img-lifestyle {
+      flex: 1;
+      background: #d9cbb5;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem;
+      min-height: 130px;
+      overflow: hidden;
+      position: relative;
+    }
+    .modal-img-lifestyle img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+    .lifestyle-label {
+      position: absolute; bottom: 0.5rem; left: 0.6rem;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: rgba(255,255,255,0.85);
+      background: rgba(0,0,0,0.35); padding: 0.2rem 0.5rem; border-radius: 4px;
+    }
+
+    /* ── MODAL DETAILS ── */
+    .modal-details {
+      padding: 2rem 2rem 2rem 1.8rem;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .modal-category {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--drift);
+    }
+    .modal-name {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.5rem; color: var(--dark); line-height: 1.25;
+    }
+    .modal-sku { font-size: 0.75rem; color: #aaa; }
+    .modal-divider { border: none; border-top: 1px solid #eee; }
+    .modal-pricing { display: flex; flex-direction: column; gap: 0.4rem; }
+    .modal-price-row {
+      display: flex; align-items: baseline; gap: 0.6rem;
+    }
+    .modal-price-label { font-size: 0.8rem; color: #999; width: 48px; }
+    .modal-price-value { font-size: 1.2rem; font-weight: 700; color: var(--dark); }
+    .modal-price-sub { font-size: 0.75rem; color: #aaa; }
+    .modal-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .modal-variants {
+      background: var(--sand); border-radius: 10px; padding: 0.9rem 1rem;
+      font-size: 0.82rem; color: var(--drift);
+    }
+    .modal-variants strong { display: block; margin-bottom: 0.3rem; font-size: 0.75rem;
+      text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── CLOSE BUTTON ── */
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--dark); color: var(--white);
+      border: none; cursor: pointer;
+      font-size: 1.1rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .modal-close:hover { background: var(--coral); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 620px) {
+      .modal { grid-template-columns: 1fr; }
+      .modal-images { border-radius: 20px 20px 0 0; }
+      .modal-img-studio { min-height: 160px; }
+    }
+
     /* ── FOOTER ── */
     footer {
       background: var(--dark); color: rgba(255,255,255,0.55);
@@ -691,6 +801,111 @@
   <footer>
     <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
   </footer>
+
+  <!-- ── PRODUCT MODAL ── -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" id="modal-close" aria-label="Close">&#x2715;</button>
+
+      <div class="modal-images">
+        <div class="modal-img-studio" id="modal-studio"></div>
+        <div class="modal-img-lifestyle" id="modal-lifestyle">
+          <span class="lifestyle-label">Lifestyle</span>
+        </div>
+      </div>
+
+      <div class="modal-details">
+        <div class="modal-category" id="modal-category"></div>
+        <div class="modal-name" id="modal-name"></div>
+        <hr class="modal-divider" />
+        <div class="modal-pricing" id="modal-pricing"></div>
+        <div class="modal-badges" id="modal-badges"></div>
+        <div class="modal-variants" id="modal-variants" style="display:none">
+          <strong>Available in</strong>
+          <span id="modal-variants-text"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const overlay  = document.getElementById('modal-overlay');
+    const btnClose = document.getElementById('modal-close');
+
+    function openModal(card) {
+      const emoji     = card.querySelector('.card-photo').textContent.trim();
+      const name      = card.querySelector('.card-name').textContent.trim();
+      const priceRows = card.querySelectorAll('.price-row');
+      const badges    = card.querySelectorAll('.badge');
+      const category  = card.closest('.category-group')
+                            .querySelector('.category-label')
+                            .textContent.trim();
+
+      const studioSrc    = card.dataset.studio    || null;
+      const lifestyleSrc = card.dataset.lifestyle || null;
+      const variants     = card.dataset.variants  || null;
+
+      // Studio shot
+      const studioEl = document.getElementById('modal-studio');
+      studioEl.innerHTML = studioSrc
+        ? '<img src="' + studioSrc + '" alt="' + name + '" />'
+        : emoji;
+
+      // Lifestyle shot
+      const lifestyleEl = document.getElementById('modal-lifestyle');
+      if (lifestyleSrc) {
+        lifestyleEl.innerHTML = '<img src="' + lifestyleSrc + '" alt="' + name + ' lifestyle" /><span class="lifestyle-label">Lifestyle</span>';
+      } else {
+        lifestyleEl.innerHTML = '<span style="opacity:0.3;font-size:2.2rem">' + emoji + '</span><span class="lifestyle-label">Lifestyle</span>';
+      }
+
+      document.getElementById('modal-category').textContent = category;
+      document.getElementById('modal-name').textContent     = name;
+
+      // Pricing
+      const pricingEl = document.getElementById('modal-pricing');
+      pricingEl.innerHTML = '';
+      priceRows.forEach(function(row) {
+        const label = row.querySelector('.price-label').textContent;
+        const value = row.querySelector('.price-value').textContent;
+        const sub   = label === 'Rent' ? ' per day' : '';
+        pricingEl.innerHTML += '<div class="modal-price-row"><span class="modal-price-label">' + label + '</span><span class="modal-price-value">' + value + '</span><span class="modal-price-sub">' + sub + '</span></div>';
+      });
+
+      // Badges
+      const badgesEl = document.getElementById('modal-badges');
+      badgesEl.innerHTML = '';
+      badges.forEach(function(b) {
+        const cls = b.classList.contains('badge-sale') ? 'badge-sale' : 'badge-rent';
+        badgesEl.innerHTML += '<span class="badge ' + cls + '">' + b.textContent + '</span>';
+      });
+
+      // Variants
+      const variantsWrap = document.getElementById('modal-variants');
+      if (variants) {
+        document.getElementById('modal-variants-text').textContent = variants;
+        variantsWrap.style.display = 'block';
+      } else {
+        variantsWrap.style.display = 'none';
+      }
+
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.card').forEach(function(card) {
+      card.addEventListener('click', function() { openModal(card); });
+    });
+
+    btnClose.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+  </script>
 
 </body>
 </html>
