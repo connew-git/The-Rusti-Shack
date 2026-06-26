@@ -80,8 +80,13 @@
       width: 100%; aspect-ratio: 4/3;
       background: var(--sand);
       display: flex; align-items: center; justify-content: center;
-      font-size: 3rem;
+      font-size: 3rem; overflow: hidden;
     }
+    .card-photo img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; transition: transform 0.3s ease;
+    }
+    .card:hover .card-photo img { transform: scale(1.04); }
 
     .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
 
@@ -413,7 +418,7 @@
       <div class="category-label">🏖️ Beach Essentials</div>
       <div class="cards">
 
-        <div class="card">
+        <div class="card" data-studio="images/FSH-008.webp" data-lifestyle="images/FSH-008-life.webp">
           <div class="card-photo">🏐</div>
           <div class="card-body">
             <div class="card-name">Beach Ball Inflatable</div>
@@ -1298,6 +1303,15 @@
 
     // Init
     updateCartCount();
+
+    // Swap emoji placeholders for real images where available
+    document.querySelectorAll('.card').forEach(function(card) {
+      var studio = card.dataset.studio;
+      if (!studio) return;
+      var photoEl = card.querySelector('.card-photo');
+      var emoji   = photoEl.textContent.trim();
+      photoEl.innerHTML = '<img src="' + studio + '" alt="' + card.querySelector('.card-name').textContent.trim() + '" onerror="this.parentElement.textContent=\'' + emoji + '\'">';
+    });
   </script>
 
 </body>
