@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Us — The Rusti Shack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:  #f5e9d3;
+      --ocean: #2a7a8c;
+      --coral: #e07050;
+      --drift: #8b6f50;
+      --white: #ffffff;
+      --dark:  #2c2c2c;
+    }
+
+    body { font-family: 'Lato', sans-serif; background: var(--sand); color: var(--dark); }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem; background: var(--ocean);
+      position: sticky; top: 0; z-index: 100;
+    }
+    nav .logo {
+      font-family: 'Pacifico', cursive; font-size: 1.5rem;
+      color: var(--white); text-decoration: none;
+    }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a {
+      color: var(--white); text-decoration: none; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;
+      opacity: 0.85; transition: opacity 0.2s;
+    }
+    nav ul a:hover, nav ul a.active { opacity: 1; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background: var(--ocean); color: var(--white);
+      text-align: center; padding: 3.5rem 2rem 3rem;
+    }
+    .page-header h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2.2rem, 5vw, 3.5rem); margin-bottom: 0.5rem;
+    }
+    .page-header p { font-size: 1rem; font-weight: 300; opacity: 0.88; }
+
+    /* ── MAIN LAYOUT ── */
+    .find-us-wrap {
+      max-width: 1100px; margin: 0 auto;
+      padding: 4rem 2rem 5rem;
+      display: flex; flex-direction: column; gap: 4rem;
+    }
+
+    /* ── MAP ── */
+    .map-block { display: flex; flex-direction: column; gap: 1rem; }
+    .map-block h2 {
+      font-family: 'Pacifico', cursive; font-size: 1.6rem; color: var(--drift);
+    }
+    .map-frame {
+      width: 100%; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.12);
+      aspect-ratio: 16/7;
+      background: #c8dde3;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .map-frame iframe {
+      width: 100%; height: 100%; border: none; display: block;
+    }
+
+    /* ── LOCATIONS GRID ── */
+    .locations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .location-card {
+      background: var(--white); border-radius: 20px;
+      padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      display: flex; flex-direction: column; gap: 1.2rem;
+    }
+    .location-icon {
+      font-size: 2.4rem;
+    }
+    .location-card h3 {
+      font-family: 'Pacifico', cursive; font-size: 1.3rem; color: var(--drift);
+    }
+    .location-tag {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      background: rgba(42,122,140,0.1); color: var(--ocean);
+      padding: 0.25rem 0.7rem; border-radius: 50px; margin-top: -0.5rem;
+    }
+    .location-detail {
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .detail-row {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      font-size: 0.92rem; line-height: 1.5;
+    }
+    .detail-icon { flex-shrink: 0; font-size: 1rem; margin-top: 0.05rem; }
+    .detail-text { color: #555; }
+    .detail-text strong { color: var(--dark); font-weight: 700; }
+
+    /* ── HOURS TABLE ── */
+    .hours-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.88rem; padding: 0.3rem 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .hours-row:last-child { border-bottom: none; }
+    .hours-day { color: #888; }
+    .hours-time { font-weight: 700; color: var(--dark); }
+
+    /* ── CONTACT STRIP ── */
+    .contact-strip {
+      background: var(--white); border-radius: 20px;
+      padding: 2.5rem 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+      display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .contact-strip h2 {
+      font-family: 'Pacifico', cursive; font-size: 1.6rem; color: var(--drift);
+    }
+    .contact-methods {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+    }
+    .contact-method {
+      display: flex; align-items: center; gap: 0.65rem;
+      background: var(--sand); border-radius: 12px;
+      padding: 0.75rem 1.2rem; text-decoration: none; color: var(--dark);
+      font-size: 0.92rem; font-weight: 700;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .contact-method:hover { background: #ecdfc8; transform: translateY(-2px); }
+    .contact-method .cm-icon { font-size: 1.3rem; }
+
+    /* ── BANGKA CALLOUT ── */
+    .bangka-callout {
+      background: var(--ocean); color: var(--white);
+      border-radius: 20px; padding: 2.5rem 2rem;
+      display: flex; flex-wrap: wrap; gap: 1.5rem;
+      align-items: center; justify-content: space-between;
+    }
+    .bangka-callout-text h2 {
+      font-family: 'Pacifico', cursive; font-size: 1.6rem; margin-bottom: 0.5rem;
+    }
+    .bangka-callout-text p {
+      font-weight: 300; opacity: 0.88; font-size: 0.97rem;
+      max-width: 480px; line-height: 1.65;
+    }
+    .bangka-callout a {
+      flex-shrink: 0; display: inline-block;
+      padding: 0.8rem 2rem; background: var(--coral); color: var(--white);
+      font-weight: 700; font-size: 0.88rem; letter-spacing: 0.07em;
+      text-transform: uppercase; text-decoration: none;
+      border-radius: 50px; transition: background 0.2s; white-space: nowrap;
+    }
+    .bangka-callout a:hover { background: #c85f40; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark); color: rgba(255,255,255,0.55);
+      text-align: center; padding: 2rem; font-size: 0.85rem;
+    }
+    footer span { color: var(--coral); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav ul { gap: 1rem; }
+      .bangka-callout { flex-direction: column; }
+      .map-frame { aspect-ratio: 4/3; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="logo">The Rusti Shack</a>
+    <ul>
+      <li><a href="gear.html">Gear</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="find-us.html" class="active">Find Us</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-header">
+    <h1>Find Us</h1>
+    <p>We're right at the water's edge — you can't miss us.</p>
+  </div>
+
+  <div class="find-us-wrap">
+
+    <!-- MAP -->
+    <div class="map-block">
+      <h2>🗺️ Apo Island, Negros Oriental</h2>
+      <div class="map-frame">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7718.243!2d123.2667!3d9.0833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33ab7b1e1e1e1e1f%3A0x1234567890abcdef!2sApo%20Island%2C%20Philippines!5e0!3m2!1sen!2sph!4v1700000000000"
+          allowfullscreen="" loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Apo Island map">
+        </iframe>
+      </div>
+    </div>
+
+    <!-- LOCATIONS -->
+    <div class="locations-grid">
+
+      <!-- Main Shop -->
+      <div class="location-card">
+        <div class="location-icon">🏚️</div>
+        <div>
+          <h3>Main Shop</h3>
+          <span class="location-tag">APO-MAIN</span>
+        </div>
+        <div class="location-detail">
+          <div class="detail-row">
+            <span class="detail-icon">📍</span>
+            <span class="detail-text">Beach front, main village,<br/><strong>Apo Island, Dauin</strong><br/>Negros Oriental, Philippines</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">ℹ️</span>
+            <span class="detail-text">Our original shack — full gear range, rentals, and sales. Right off the main beach where the bangkas land.</span>
+          </div>
+          <div>
+            <div class="hours-row"><span class="hours-day">Monday – Friday</span><span class="hours-time">7:00 AM – 5:00 PM</span></div>
+            <div class="hours-row"><span class="hours-day">Saturday – Sunday</span><span class="hours-time">6:30 AM – 5:30 PM</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dock Kiosk -->
+      <div class="location-card">
+        <div class="location-icon">⚓</div>
+        <div>
+          <h3>Dock-Side Kiosk</h3>
+          <span class="location-tag">APO-DOCK</span>
+        </div>
+        <div class="location-detail">
+          <div class="detail-row">
+            <span class="detail-icon">📍</span>
+            <span class="detail-text">At the main dock,<br/><strong>Apo Island, Dauin</strong><br/>Negros Oriental, Philippines</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-icon">ℹ️</span>
+            <span class="detail-text">A smaller kiosk right at the dock — perfect for quick rentals as you step off the boat. Snorkels, fins, and essentials only.</span>
+          </div>
+          <div>
+            <div class="hours-row"><span class="hours-day">Monday – Friday</span><span class="hours-time">7:00 AM – 12:00 PM</span></div>
+            <div class="hours-row"><span class="hours-day">Saturday – Sunday</span><span class="hours-time">6:30 AM – 1:00 PM</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CONTACT -->
+    <div class="contact-strip">
+      <h2>Get in touch</h2>
+      <div class="contact-methods">
+        <a href="mailto:hello@rustishack.com" class="contact-method">
+          <span class="cm-icon">✉️</span> hello@rustishack.com
+        </a>
+        <a href="https://wa.me/63900000000" class="contact-method">
+          <span class="cm-icon">💬</span> WhatsApp us
+        </a>
+        <a href="tel:+63900000000" class="contact-method">
+          <span class="cm-icon">📞</span> +63 900 000 0000
+        </a>
+        <a href="#" class="contact-method">
+          <span class="cm-icon">📸</span> @therustishack
+        </a>
+      </div>
+      <p style="font-size:0.85rem;color:#aaa;">
+        Phone and WhatsApp signals on the island can be patchy — email is the most reliable way to reach us before you make the crossing.
+      </p>
+    </div>
+
+    <!-- BANGKA CALLOUT -->
+    <div class="bangka-callout">
+      <div class="bangka-callout-text">
+        <h2>First time coming over?</h2>
+        <p>The only way to reach Apo Island is by bangka from Malatapay on the Negros coast. We've put together a step-by-step guide so you know exactly what to expect.</p>
+      </div>
+      <a href="about.html#getting-here">Read the Travel Guide</a>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
+  </footer>
+
+</body>
+</html>

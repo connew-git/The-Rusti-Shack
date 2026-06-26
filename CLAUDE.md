@@ -18,7 +18,7 @@ All product data lives in `Data/The_Rusti_Shack_Dataset.xlsx`. The Products shee
 | `index.html` | Homepage — hero banner, about strip, category teaser with clickable pills |
 | `gear.html` | Full product catalogue — 5 categories, product cards, detail modal, cart, checkout |
 | `about.html` | About Apo Island, the shack's story, 4-step bangka travel guide |
-| `find-us.html` | Not built yet |
+| `find-us.html` | Two location cards (Main Shop + Dock Kiosk), hours, map embed, contact strip, bangka callout |
 
 ## Tech stack
 - **Plain HTML, CSS, and vanilla JavaScript only.** No frameworks, no build tools, no npm.
