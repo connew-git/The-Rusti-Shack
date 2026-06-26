@@ -172,6 +172,12 @@
       letter-spacing: 0.04em;
       padding: 0.5rem 1.2rem;
       border-radius: 50px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .pill:hover {
+      background: var(--drift);
+      color: var(--white);
     }
 
     /* ── FOOTER ── */
@@ -222,11 +228,11 @@
     <h2>What We Rent</h2>
     <p>Everything you need for a perfect day on the water — from snorkels to surfboards, beach chairs to fishing rods.</p>
     <div class="category-pills">
-      <span class="pill">🏖️ Beach Essentials</span>
-      <span class="pill">👕 Apparel</span>
-      <span class="pill">🤿 Snorkel & Dive</span>
-      <span class="pill">🏄 Surfing</span>
-      <span class="pill">🎣 Fishing</span>
+      <a href="gear.html#beach-essentials" class="pill">🏖️ Beach Essentials</a>
+      <a href="gear.html#apparel" class="pill">👕 Apparel</a>
+      <a href="gear.html#snorkel-dive" class="pill">🤿 Snorkel & Dive</a>
+      <a href="gear.html#surfing" class="pill">🏄 Surfing</a>
+      <a href="gear.html#fishing" class="pill">🎣 Fishing</a>
     </div>
     <a href="gear.html" class="hero-cta">Browse All Gear</a>
   </section>
