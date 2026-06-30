@@ -56,6 +56,22 @@
       transition: opacity 0.2s;
     }
     nav ul a:hover { opacity: 1; }
+    .cart-btn {
+      background: none; border: 2px solid rgba(255,255,255,0.5);
+      color: var(--white); border-radius: 50px; text-decoration: none;
+      padding: 0.35rem 0.9rem; font-family: 'Lato', sans-serif;
+      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .cart-btn:hover { border-color: white; background: rgba(255,255,255,0.1); }
+    .cart-count {
+      background: var(--coral); color: var(--white);
+      border-radius: 50%; min-width: 18px; height: 18px;
+      font-size: 0.7rem; display: none;
+      align-items: center; justify-content: center; padding: 0 3px;
+    }
+    .cart-count.has-items { display: flex; }
 
     /* ── HERO / BANNER ── */
     .hero {
@@ -201,6 +217,9 @@
       <li><a href="about.html">About</a></li>
       <li><a href="find-us.html">Find Us</a></li>
     </ul>
+    <a href="cart.html" class="cart-btn" id="cart-btn">
+      🛒 Cart <span class="cart-count" id="cart-count"></span>
+    </a>
   </nav>
 
   <!-- HERO BANNER -->
@@ -242,5 +261,13 @@
     <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
   </footer>
 
+  <script>
+    (function() {
+      var cart  = JSON.parse(localStorage.getItem('rustiCart') || '[]');
+      var total = cart.reduce(function(s, i) { return s + i.qty; }, 0);
+      var el    = document.getElementById('cart-count');
+      if (el && total > 0) { el.textContent = total; el.classList.add('has-items'); }
+    })();
+  </script>
 </body>
 </html>

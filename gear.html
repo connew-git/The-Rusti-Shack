@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gear — The Rusti Shack</title>
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -234,8 +235,8 @@
     /* ── CART BUTTON IN NAV ── */
     .cart-btn {
       background: none; border: 2px solid rgba(255,255,255,0.5);
-      color: var(--white); border-radius: 50px;
-      padding: 0.35rem 0.9rem; cursor: pointer; font-family: 'Lato', sans-serif;
+      color: var(--white); border-radius: 50px; text-decoration: none;
+      padding: 0.35rem 0.9rem; font-family: 'Lato', sans-serif;
       font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em;
       display: flex; align-items: center; gap: 0.4rem;
       transition: border-color 0.2s, background 0.2s;
@@ -243,146 +244,33 @@
     .cart-btn:hover { border-color: white; background: rgba(255,255,255,0.1); }
     .cart-count {
       background: var(--coral); color: var(--white);
-      border-radius: 50%; width: 18px; height: 18px;
-      font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
-      display: none;
+      border-radius: 50%; min-width: 18px; height: 18px;
+      font-size: 0.7rem; display: none;
+      align-items: center; justify-content: center; padding: 0 3px;
     }
     .cart-count.has-items { display: flex; }
 
-    /* ── CART DRAWER ── */
-    .cart-drawer {
-      position: fixed; top: 0; right: 0; bottom: 0;
-      width: 380px; max-width: 95vw;
-      background: var(--white); z-index: 600;
-      display: flex; flex-direction: column;
-      box-shadow: -6px 0 30px rgba(0,0,0,0.18);
-      transform: translateX(100%); transition: transform 0.3s ease;
-    }
-    .cart-drawer.open { transform: translateX(0); }
-    .cart-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-      z-index: 599; display: none;
-    }
-    .cart-backdrop.open { display: block; }
-
-    .cart-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1.2rem 1.5rem; border-bottom: 1px solid #eee;
-      background: var(--ocean); color: var(--white);
-    }
-    .cart-header h2 { font-family: 'Pacifico', cursive; font-size: 1.3rem; }
-    .cart-header-close {
-      background: none; border: none; color: var(--white);
-      font-size: 1.2rem; cursor: pointer; opacity: 0.8; line-height: 1;
-    }
-    .cart-header-close:hover { opacity: 1; }
-
-    .cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
-    .cart-empty {
-      text-align: center; color: #aaa; padding: 3rem 1rem;
-      font-size: 0.95rem;
-    }
-    .cart-empty .empty-icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; }
-
-    .cart-item {
-      display: flex; gap: 0.8rem; align-items: flex-start;
-      padding: 0.85rem 0; border-bottom: 1px solid #f0f0f0;
-    }
-    .cart-item-emoji { font-size: 1.8rem; flex-shrink: 0; width: 40px; text-align: center; }
-    .cart-item-info { flex: 1; }
-    .cart-item-name { font-weight: 700; font-size: 0.88rem; line-height: 1.3; }
-    .cart-item-type {
+    /* ── VARIANT PICKER ── */
+    .picker-label {
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.05em; margin-top: 0.15rem;
+      letter-spacing: 0.06em; color: var(--drift); margin-bottom: 0.35rem;
     }
-    .type-buy  { color: var(--coral); }
-    .type-rent { color: var(--ocean); }
-    .cart-item-price { font-size: 0.88rem; color: #555; margin-top: 0.2rem; }
-    .cart-item-controls { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
-    .qty-btn {
-      width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ddd;
-      background: #f5f5f5; cursor: pointer; font-size: 0.9rem; line-height: 1;
-      display: flex; align-items: center; justify-content: center;
+    .picker-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.7rem; }
+    .picker-pill {
+      padding: 0.28rem 0.8rem; border-radius: 50px;
+      border: 1.5px solid #ddd; background: none; cursor: pointer;
+      font-family: 'Lato', sans-serif; font-size: 0.78rem; font-weight: 700;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
     }
-    .qty-btn:hover { background: #e0e0e0; }
-    .qty-val { font-weight: 700; font-size: 0.88rem; min-width: 20px; text-align: center; }
-    .cart-item-remove { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1rem; margin-left: auto; }
-    .cart-item-remove:hover { color: var(--coral); }
-
-    .cart-footer {
-      padding: 1.2rem 1.5rem; border-top: 1px solid #eee; background: var(--sand);
+    .picker-pill:hover:not(:disabled) { border-color: var(--ocean); color: var(--ocean); }
+    .picker-pill.selected { background: var(--ocean); border-color: var(--ocean); color: #fff; }
+    .picker-pill:disabled { opacity: 0.28; cursor: not-allowed; pointer-events: none; }
+    .modal-rental-note {
+      font-size: 0.8rem; color: var(--ocean); font-style: italic;
+      padding: 0.5rem 0.8rem; background: rgba(42,122,140,0.07);
+      border-radius: 8px; line-height: 1.4;
     }
-    .cart-subtotal {
-      display: flex; justify-content: space-between;
-      font-weight: 700; font-size: 1rem; margin-bottom: 1rem;
-    }
-    .btn-checkout {
-      width: 100%; padding: 0.85rem; background: var(--coral); color: var(--white);
-      border: none; border-radius: 50px; font-family: 'Lato', sans-serif;
-      font-weight: 700; font-size: 0.95rem; letter-spacing: 0.06em;
-      text-transform: uppercase; cursor: pointer; transition: background 0.2s;
-    }
-    .btn-checkout:hover { background: #c85f40; }
-
-    /* ── CHECKOUT MODAL ── */
-    .checkout-overlay {
-      display: none; position: fixed; inset: 0; z-index: 700;
-      background: rgba(0,0,0,0.6);
-      align-items: center; justify-content: center; padding: 1.5rem;
-    }
-    .checkout-overlay.open { display: flex; }
-    .checkout-modal {
-      background: var(--white); border-radius: 20px;
-      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
-      padding: 2rem; position: relative;
-    }
-    .checkout-modal h2 {
-      font-family: 'Pacifico', cursive; font-size: 1.6rem;
-      color: var(--drift); margin-bottom: 0.3rem;
-    }
-    .checkout-modal .checkout-sub { color: #888; font-size: 0.9rem; margin-bottom: 1.5rem; }
-    .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
-    .form-group label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--drift); }
-    .form-group input, .form-group textarea, .form-group select {
-      padding: 0.65rem 0.9rem; border: 1px solid #ddd; border-radius: 10px;
-      font-family: 'Lato', sans-serif; font-size: 0.95rem;
-      transition: border-color 0.2s; outline: none;
-    }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--ocean); }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .checkout-order-summary {
-      background: var(--sand); border-radius: 12px; padding: 1rem;
-      margin-bottom: 1.2rem; font-size: 0.85rem;
-    }
-    .checkout-order-summary h3 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--drift); margin-bottom: 0.6rem; }
-    .summary-line { display: flex; justify-content: space-between; padding: 0.2rem 0; }
-    .summary-total { border-top: 1px solid #ddd; margin-top: 0.5rem; padding-top: 0.5rem; font-weight: 700; }
-    .btn-submit {
-      width: 100%; padding: 0.85rem; background: var(--ocean); color: var(--white);
-      border: none; border-radius: 50px; font-family: 'Lato', sans-serif;
-      font-weight: 700; font-size: 0.95rem; letter-spacing: 0.06em;
-      text-transform: uppercase; cursor: pointer; transition: background 0.2s;
-    }
-    .btn-submit:hover { background: #21606e; }
-    .checkout-close {
-      position: absolute; top: 1rem; right: 1rem;
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #eee; border: none; cursor: pointer; font-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .checkout-close:hover { background: #ddd; }
-
-    /* ── SUCCESS STATE ── */
-    .checkout-success { text-align: center; padding: 1rem 0; }
-    .checkout-success .success-icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
-    .checkout-success h2 { color: var(--ocean); margin-bottom: 0.5rem; }
-    .checkout-success p { color: #666; font-size: 0.95rem; line-height: 1.6; }
-    .btn-done {
-      margin-top: 1.5rem; padding: 0.7rem 2rem;
-      background: var(--coral); color: var(--white); border: none;
-      border-radius: 50px; font-family: 'Lato', sans-serif;
-      font-weight: 700; cursor: pointer; font-size: 0.9rem;
-    }
+    .btn-add:disabled { opacity: 0.45; cursor: not-allowed; }
 
     /* ── FOOTER ── */
     footer {
@@ -401,9 +289,9 @@
       <li><a href="about.html">About</a></li>
       <li><a href="find-us.html">Find Us</a></li>
     </ul>
-    <button class="cart-btn" id="cart-btn">
-      🛒 Cart <span class="cart-count" id="cart-count">0</span>
-    </button>
+    <a href="cart.html" class="cart-btn" id="cart-btn">
+      🛒 Cart <span class="cart-count" id="cart-count"></span>
+    </a>
   </nav>
 
   <div class="page-header">
@@ -411,568 +299,11 @@
     <p>Everything you need for a perfect day on Apo Island.</p>
   </div>
 
-  <main class="gear-page">
+  <main class="gear-page" id="gear-page">
+    <p style="text-align:center;padding:3rem;color:#aaa">Loading gear…</p>
 
-    <!-- ── BEACH ESSENTIALS ── -->
-    <div class="category-group" id="beach-essentials">
-      <div class="category-label">🏖️ Beach Essentials</div>
-      <div class="cards">
-
-        <div class="card" data-studio="images/BCH-002.webp" data-lifestyle="images/BCH-002-life.webp">
-          <div class="card-photo">🏐</div>
-          <div class="card-body">
-            <div class="card-name">Beach Ball Inflatable</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$6.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$1.70/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-001.webp" data-lifestyle="images/BCH-001-life.webp">
-          <div class="card-photo">🪣</div>
-          <div class="card-body">
-            <div class="card-name">Sand Shovel & Bucket Set</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$14.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$2.05/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-003-sunset-print.webp" data-lifestyle="images/BCH-003-life.webp">
-          <div class="card-photo">🌺</div>
-          <div class="card-body">
-            <div class="card-name">Beach Towel Tropical Print</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$24.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$2.71/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-004-blue.webp" data-lifestyle="images/BCH-004-life.webp">
-          <div class="card-photo">🌊</div>
-          <div class="card-body">
-            <div class="card-name">Microfiber Quick-Dry Towel</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$28.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.29/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-005.webp" data-lifestyle="images/BCH-005-life.webp">
-          <div class="card-photo">☂️</div>
-          <div class="card-body">
-            <div class="card-name">Beach Umbrella 7ft</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$54.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$7.74/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-006.webp" data-lifestyle="images/BCH-006-life.webp">
-          <div class="card-photo">⛺</div>
-          <div class="card-body">
-            <div class="card-name">Pop-Up Beach Tent</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$89.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$10.40/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-007.webp" data-lifestyle="images/BCH-007-life.webp">
-          <div class="card-photo">🧴</div>
-          <div class="card-body">
-            <div class="card-name">Reef-Safe Sunscreen SPF50</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$19.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-008.webp" data-lifestyle="images/BCH-008-life.webp">
-          <div class="card-photo">🌿</div>
-          <div class="card-body">
-            <div class="card-name">After-Sun Aloe Gel</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$13.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-009-aviator-black-m.webp" data-lifestyle="images/BCH-009-aviator-black-life.webp">
-          <div class="card-photo">🕶️</div>
-          <div class="card-body">
-            <div class="card-name">Polarized Sunglasses</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$39.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-010.webp" data-lifestyle="images/BCH-010-life.webp">
-          <div class="card-photo">📱</div>
-          <div class="card-body">
-            <div class="card-name">Waterproof Phone Pouch</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$12.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-011-black-m.webp" data-lifestyle="images/BCH-011-black-life.webp">
-          <div class="card-photo">👟</div>
-          <div class="card-body">
-            <div class="card-name">Reef Walker Water Shoes</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$38.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.07/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/BCH-012.webp" data-lifestyle="images/BCH-012-life.webp">
-          <div class="card-photo">🧊</div>
-          <div class="card-body">
-            <div class="card-name">Cooler Bag Insulated</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">from $44.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$4.85/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── APPAREL ── -->
-    <div class="category-group" id="apparel">
-      <div class="category-label">👕 Apparel</div>
-      <div class="cards">
-
-        <div class="card" data-studio="images/APP-001-m.webp" data-lifestyle="images/APP-001-life.webp">
-          <div class="card-photo">👕</div>
-          <div class="card-body">
-            <div class="card-name">Tide & Tempo Logo Tee</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$24.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/APP-002-m.webp" data-lifestyle="images/APP-002-life.webp">
-          <div class="card-photo">🌴</div>
-          <div class="card-body">
-            <div class="card-name">Apo Island Souvenir Tee</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$26.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/APP-003.webp" data-lifestyle="images/APP-003-life.webp">
-          <div class="card-photo">🩲</div>
-          <div class="card-body">
-            <div class="card-name">Boardshorts — Mens</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$44.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/APP-004-coral.webp" data-lifestyle="images/APP-004-coral-life.webp">
-          <div class="card-photo">👙</div>
-          <div class="card-body">
-            <div class="card-name">Bikini Set — Womens</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$54.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/APP-005-black.webp" data-lifestyle="images/APP-005-black-life.webp">
-          <div class="card-photo">🩱</div>
-          <div class="card-body">
-            <div class="card-name">One-Piece Swimsuit</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$58.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/WET-002-navy-m.webp" data-lifestyle="images/WET-002-navy-life.webp">
-          <div class="card-photo">🧥</div>
-          <div class="card-body">
-            <div class="card-name">Rashguard Long Sleeve</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$32.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/APP-006-natural.webp" data-lifestyle="images/APP-006-natural-life.webp">
-          <div class="card-photo">🧢</div>
-          <div class="card-body">
-            <div class="card-name">UV Hat Wide Brim</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$28.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/APP-007-u.webp" data-lifestyle="images/APP-007-life.webp">
-          <div class="card-photo">🩴</div>
-          <div class="card-body">
-            <div class="card-name">Flip Flops Tropical</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$14.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── SNORKEL & DIVE ── -->
-    <div class="category-group" id="snorkel-dive">
-      <div class="category-label">🤿 Snorkel & Dive</div>
-      <div class="cards">
-
-        <div class="card" data-studio="images/SNK-001-clear.webp" data-lifestyle="images/SNK-001-clear-life.webp">
-          <div class="card-photo">🥽</div>
-          <div class="card-body">
-            <div class="card-name">Reef Explorer Snorkel Mask</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$42.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$4.78/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SNK-002-clear.webp" data-lifestyle="images/SNK-002-clear-life.webp">
-          <div class="card-photo">🤿</div>
-          <div class="card-body">
-            <div class="card-name">Pro Anti-Fog Snorkel Mask</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$58.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$5.51/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SNK-003-aqua.webp" data-lifestyle="images/SNK-003-aqua-life.webp">
-          <div class="card-photo">🐠</div>
-          <div class="card-body">
-            <div class="card-name">Junior Snorkel Set (Kids)</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$34.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$4.35/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SNK-004.webp" data-lifestyle="images/SNK-004-life.webp">
-          <div class="card-photo">🐬</div>
-          <div class="card-body">
-            <div class="card-name">Adult Snorkel Set</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$64.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$7.01/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SNK-005.webp" data-lifestyle="images/SNK-005-life.webp">
-          <div class="card-photo">💨</div>
-          <div class="card-body">
-            <div class="card-name">Dry-Top Snorkel</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$28.50</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.02/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FIN-001.webp" data-lifestyle="images/FIN-001-life.webp">
-          <div class="card-photo">🦈</div>
-          <div class="card-body">
-            <div class="card-name">Open-Heel Dive Fins</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$79.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$6.44/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FIN-002.webp" data-lifestyle="images/FIN-002-life.webp">
-          <div class="card-photo">🐟</div>
-          <div class="card-body">
-            <div class="card-name">Travel Snorkel Fins</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$49.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$5.38/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FIN-003.webp" data-lifestyle="images/FIN-003-life.webp">
-          <div class="card-photo">🐡</div>
-          <div class="card-body">
-            <div class="card-name">Kids Swim Fins</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$29.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$3.15/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/WET-001-m.webp" data-lifestyle="images/WET-001-life.webp">
-          <div class="card-photo">🌊</div>
-          <div class="card-body">
-            <div class="card-name">3mm Shorty Wetsuit</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$109.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$10.31/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── SURFING ── -->
-    <div class="category-group" id="surfing">
-      <div class="category-label">🏄 Surfing</div>
-      <div class="cards">
-
-        <div class="card" data-studio="images/SUR-003.webp" data-lifestyle="images/SUR-003-life.webp">
-          <div class="card-photo">🏄</div>
-          <div class="card-body">
-            <div class="card-name">Beginner Foam Surfboard</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$279.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$15.03/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SUR-001.webp" data-lifestyle="images/SUR-001-life.webp">
-          <div class="card-photo">🌊</div>
-          <div class="card-body">
-            <div class="card-name">7'2 Funboard Surfboard</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$449.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$25.42/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SUR-002.webp" data-lifestyle="images/SUR-002-life.webp">
-          <div class="card-photo">🐚</div>
-          <div class="card-body">
-            <div class="card-name">9'0 Longboard Surfboard</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$599.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$29.91/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SUR-006.webp" data-lifestyle="images/SUR-006-life.webp">
-          <div class="card-photo">🛹</div>
-          <div class="card-body">
-            <div class="card-name">Skim Board Pro</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$89.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$11.62/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SUR-004.webp" data-lifestyle="images/SUR-004-life.webp">
-          <div class="card-photo">🪢</div>
-          <div class="card-body">
-            <div class="card-name">Surf Leash</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$22.50</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/SUR-005.webp" data-lifestyle="images/SUR-005-life.webp">
-          <div class="card-photo">🕯️</div>
-          <div class="card-body">
-            <div class="card-name">Surf Wax Tropical</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$5.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/KIT-002.webp" data-lifestyle="images/KIT-002-life.webp">
-          <div class="card-photo">🪁</div>
-          <div class="card-body">
-            <div class="card-name">Kitesurf Harness</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$139.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/KIT-001-blue.webp" data-lifestyle="images/KIT-001-blue-life.webp">
-          <div class="card-photo">💨</div>
-          <div class="card-body">
-            <div class="card-name">Beginner Kitesurf Kit</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$1,099.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── FISHING ── -->
-    <div class="category-group" id="fishing">
-      <div class="category-label">🎣 Fishing</div>
-      <div class="cards">
-
-        <div class="card" data-studio="images/FSH-001.webp" data-lifestyle="images/FSH-001-life.webp">
-          <div class="card-photo">🎣</div>
-          <div class="card-body">
-            <div class="card-name">Saltwater Spinning Rod 7ft</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$98.00</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$7.65/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-002.webp" data-lifestyle="images/FSH-002-life.webp">
-          <div class="card-photo">🗜️</div>
-          <div class="card-body">
-            <div class="card-name">Telescopic Travel Rod</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$64.99</span></div>
-              <div class="price-row"><span class="price-label">Rent</span><span class="price-value">$6.08/day</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span><span class="badge badge-rent">For Rent</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-003.webp" data-lifestyle="images/FSH-003-life.webp">
-          <div class="card-photo">⚙️</div>
-          <div class="card-body">
-            <div class="card-name">Spinning Reel 4000</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$84.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-004.webp" data-lifestyle="images/FSH-004-life.webp">
-          <div class="card-photo">🧰</div>
-          <div class="card-body">
-            <div class="card-name">Tackle Box Deluxe</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$49.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-005.webp" data-lifestyle="images/FSH-005-life.webp">
-          <div class="card-photo">🦐</div>
-          <div class="card-body">
-            <div class="card-name">Live Bait — Shrimp (lb)</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$6.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-006.webp" data-lifestyle="images/FSH-006-life.webp">
-          <div class="card-photo">🦑</div>
-          <div class="card-body">
-            <div class="card-name">Live Bait — Squid (lb)</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$7.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-007.webp" data-lifestyle="images/FSH-007-life.webp">
-          <div class="card-photo">🪝</div>
-          <div class="card-body">
-            <div class="card-name">Lure Pack Tropical (12pc)</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$22.99</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-        <div class="card" data-studio="images/FSH-008.webp" data-lifestyle="images/FSH-008-life.webp">
-          <div class="card-photo">🕸️</div>
-          <div class="card-body">
-            <div class="card-name">Cast Net 8ft</div>
-            <div class="card-pricing">
-              <div class="price-row"><span class="price-label">Buy</span><span class="price-value">$45.00</span></div>
-            </div>
-            <div class="badges"><span class="badge badge-sale">For Sale</span></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
+    <!-- content rendered by JS from Supabase -->
   </main>
-
   <footer>
     <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
   </footer>
@@ -995,242 +326,347 @@
         <hr class="modal-divider" />
         <div class="modal-pricing" id="modal-pricing"></div>
         <div class="modal-badges" id="modal-badges"></div>
-        <div class="modal-variants" id="modal-variants" style="display:none">
-          <strong>Available in</strong>
-          <span id="modal-variants-text"></span>
+        <div id="modal-picker-wrap"></div>
+        <div class="modal-rental-note" id="modal-rental-note" style="display:none">
+          🏝️ Also available to rent in store on Apo Island.
         </div>
-        <div class="modal-actions" id="modal-actions"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── CART DRAWER ── -->
-  <div class="cart-backdrop" id="cart-backdrop"></div>
-  <div class="cart-drawer" id="cart-drawer">
-    <div class="cart-header">
-      <h2>Your Cart</h2>
-      <button class="cart-header-close" id="cart-drawer-close">&#x2715;</button>
-    </div>
-    <div class="cart-items" id="cart-items"></div>
-    <div class="cart-footer" id="cart-footer" style="display:none">
-      <div class="cart-subtotal">
-        <span>Subtotal</span><span id="cart-subtotal-val">$0.00</span>
-      </div>
-      <button class="btn-checkout" id="btn-checkout">Proceed to Checkout</button>
-    </div>
-  </div>
-
-  <!-- ── CHECKOUT MODAL ── -->
-  <div class="checkout-overlay" id="checkout-overlay">
-    <div class="checkout-modal">
-      <button class="checkout-close" id="checkout-close">&#x2715;</button>
-      <div id="checkout-form-wrap">
-        <h2>Checkout</h2>
-        <p class="checkout-sub">We'll confirm your order by email.</p>
-        <div class="checkout-order-summary" id="checkout-summary"></div>
-        <form id="checkout-form">
-          <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="f-name" required placeholder="e.g. Maria Santos" />
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="f-email" required placeholder="you@example.com" />
-          </div>
-          <div class="form-group">
-            <label>Phone (optional)</label>
-            <input type="tel" id="f-phone" placeholder="+63 900 000 0000" />
-          </div>
-          <div class="form-group" id="f-date-group">
-            <label>Rental / Pickup Date</label>
-            <input type="date" id="f-date" />
-          </div>
-          <div class="form-group">
-            <label>Notes</label>
-            <textarea id="f-notes" placeholder="Any questions or special requests…"></textarea>
-          </div>
-          <button type="submit" class="btn-submit">Place Order</button>
-        </form>
-      </div>
-      <div class="checkout-success" id="checkout-success" style="display:none">
-        <span class="success-icon">🌊</span>
-        <h2>You're all set!</h2>
-        <p>Thanks for your order. We'll send a confirmation to your email shortly.<br/>See you at the shack!</p>
-        <button class="btn-done" id="btn-done">Back to Gear</button>
+        <div class="modal-actions">
+          <button class="btn-add btn-buy" id="modal-add-btn" disabled>Add to Cart</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ── CART STATE ──────────────────────────────────────────────
-    var cart = JSON.parse(localStorage.getItem('rustiCart') || '[]');
+    // ── SUPABASE ──────────────────────────────────────────────────
+    var _db = supabase.createClient(
+      'https://igfgyuuucaezuqtdvykl.supabase.co',
+      'sb_publishable_DQ6TOH6FnupPHijXR6gplQ_nDNDSTxU'
+    );
 
-    function saveCart() { localStorage.setItem('rustiCart', JSON.stringify(cart)); }
+    var CATEGORY_ORDER = [
+      { key: 'Beach Essentials', label: '🏖️ Beach Essentials', id: 'beach-essentials' },
+      { key: 'Apparel',          label: '👕 Apparel',          id: 'apparel'          },
+      { key: 'Snorkel & Dive',   label: '🤿 Snorkel & Dive',   id: 'snorkel-dive'    },
+      { key: 'Surfing',          label: '🏄 Surfing',          id: 'surfing'         },
+      { key: 'Fishing',          label: '🎣 Fishing',          id: 'fishing'         }
+    ];
 
-    function parsePrice(str) {
-      return parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
+    // Loaded at boot, keyed by sku / parent_sku
+    var _productsMap      = {};
+    var _variantsByParent = {};
+
+    // ── CARD BUILDER ──────────────────────────────────────────────
+    function buildCard(p) {
+      var canBuy  = p.availability === 'Both' || p.availability === 'Sale only';
+      var canRent = p.availability === 'Both' || p.availability === 'Rental only';
+
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.sku       = p.sku;
+      card.dataset.emoji     = p.emoji;
+      if (p.studio_image)    card.dataset.studio    = p.studio_image;
+      if (p.lifestyle_image) card.dataset.lifestyle = p.lifestyle_image;
+
+      var photo = document.createElement('div');
+      photo.className = 'card-photo';
+      if (p.studio_image) {
+        var img = document.createElement('img');
+        img.alt = p.name; img.src = p.studio_image;
+        img.onerror = function() { photo.textContent = p.emoji; };
+        photo.appendChild(img);
+      } else {
+        photo.textContent = p.emoji;
+      }
+      card.appendChild(photo);
+
+      var body = document.createElement('div');
+      body.className = 'card-body';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'card-name';
+      nameEl.textContent = p.name;
+      body.appendChild(nameEl);
+
+      var pricing = document.createElement('div');
+      pricing.className = 'card-pricing';
+      if (canBuy) {
+        pricing.innerHTML += '<div class="price-row"><span class="price-label">Buy</span><span class="price-value">$' + Number(p.unit_price).toFixed(2) + '</span></div>';
+      }
+      if (canRent && p.rental_rate) {
+        pricing.innerHTML += '<div class="price-row"><span class="price-label">Rent</span><span class="price-value">$' + Number(p.rental_rate).toFixed(2) + '/day</span></div>';
+      }
+      body.appendChild(pricing);
+
+      var badges = document.createElement('div');
+      badges.className = 'badges';
+      if (canBuy)  badges.innerHTML += '<span class="badge badge-sale">For Sale</span>';
+      if (canRent) badges.innerHTML += '<span class="badge badge-rent">For Rent</span>';
+      body.appendChild(badges);
+
+      card.appendChild(body);
+      return card;
     }
 
-    function cartTotal() {
-      return cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+    // ── DATA LOADING ──────────────────────────────────────────────
+    function renderProducts() {
+      var gearPage = document.getElementById('gear-page');
+      gearPage.innerHTML = '<p style="text-align:center;padding:3rem;color:#aaa">Loading gear…</p>';
+
+      Promise.all([
+        _db.from('products').select('*').order('sku'),
+        _db.from('product_variants').select('*')
+      ]).then(function(results) {
+        var prodResult = results[0];
+        var varResult  = results[1];
+
+        if (prodResult.error || !prodResult.data) {
+          gearPage.innerHTML = '<p style="text-align:center;padding:3rem;color:#aaa">Could not load products. Please refresh.</p>';
+          return;
+        }
+
+        _productsMap = {};
+        prodResult.data.forEach(function(p) { _productsMap[p.sku] = p; });
+
+        _variantsByParent = {};
+        if (varResult.data) {
+          varResult.data.forEach(function(v) {
+            if (!_variantsByParent[v.parent_sku]) _variantsByParent[v.parent_sku] = [];
+            _variantsByParent[v.parent_sku].push(v);
+          });
+        }
+
+        var byCategory = {};
+        prodResult.data.forEach(function(p) {
+          if (!byCategory[p.category]) byCategory[p.category] = [];
+          byCategory[p.category].push(p);
+        });
+
+        gearPage.innerHTML = '';
+        CATEGORY_ORDER.forEach(function(cat) {
+          var items = byCategory[cat.key];
+          if (!items || !items.length) return;
+
+          var group = document.createElement('div');
+          group.className = 'category-group'; group.id = cat.id;
+
+          var labelEl = document.createElement('div');
+          labelEl.className = 'category-label'; labelEl.textContent = cat.label;
+          group.appendChild(labelEl);
+
+          var cardsEl = document.createElement('div');
+          cardsEl.className = 'cards';
+          items.forEach(function(p) { cardsEl.appendChild(buildCard(p)); });
+          group.appendChild(cardsEl);
+          gearPage.appendChild(group);
+        });
+
+        updateCartCount();
+      });
     }
+
+    // ── CART ──────────────────────────────────────────────────────
+    function getCart()    { return JSON.parse(localStorage.getItem('rustiCart') || '[]'); }
+    function saveCart(c)  { localStorage.setItem('rustiCart', JSON.stringify(c)); }
 
     function updateCartCount() {
+      var cart  = getCart();
       var total = cart.reduce(function(s, i) { return s + i.qty; }, 0);
-      var el = document.getElementById('cart-count');
-      el.textContent = total;
+      var el    = document.getElementById('cart-count');
+      if (!el) return;
+      el.textContent = total || '';
       el.classList.toggle('has-items', total > 0);
     }
 
-    function addToCart(name, emoji, priceStr, type) {
-      var price = parsePrice(priceStr);
-      var key   = name + '||' + type;
-      var existing = cart.find(function(i) { return i.key === key; });
-      if (existing) { existing.qty++; }
-      else { cart.push({ key: key, name: name, emoji: emoji, price: price, priceStr: priceStr, type: type, qty: 1 }); }
-      saveCart();
-      updateCartCount();
-      renderCart();
-      closeModal();
-      openCartDrawer();
-    }
-
-    // ── CART DRAWER ──────────────────────────────────────────────
-    var cartDrawer   = document.getElementById('cart-drawer');
-    var cartBackdrop = document.getElementById('cart-backdrop');
-
-    function openCartDrawer() {
-      cartDrawer.classList.add('open');
-      cartBackdrop.classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeCartDrawer() {
-      cartDrawer.classList.remove('open');
-      cartBackdrop.classList.remove('open');
-      document.body.style.overflow = '';
-    }
-
-    function renderCart() {
-      var itemsEl    = document.getElementById('cart-items');
-      var footerEl   = document.getElementById('cart-footer');
-      var subtotalEl = document.getElementById('cart-subtotal-val');
-
-      if (cart.length === 0) {
-        itemsEl.innerHTML = '<div class="cart-empty"><span class="empty-icon">🛒</span>Your cart is empty.<br/>Browse the gear and add something!</div>';
-        footerEl.style.display = 'none';
-        return;
+    function addToCart(sku, name, variantLabel, emoji, studioImage, price) {
+      var cart     = getCart();
+      var existing = cart.find(function(i) { return i.sku === sku; });
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ sku: sku, name: name, variantLabel: variantLabel,
+                    emoji: emoji, studioImage: studioImage, price: price, qty: 1 });
       }
+      saveCart(cart);
+      updateCartCount();
 
-      footerEl.style.display = 'block';
-      subtotalEl.textContent = '$' + cartTotal().toFixed(2);
-
-      itemsEl.innerHTML = cart.map(function(item, idx) {
-        var typeCls   = item.type === 'Buy' ? 'type-buy' : 'type-rent';
-        var typeTxt   = item.type === 'Buy' ? 'For Sale' : 'For Rent';
-        var priceLine = item.type === 'Rent' ? item.priceStr + '/day' : item.priceStr;
-        return '<div class="cart-item">' +
-          '<div class="cart-item-emoji">' + item.emoji + '</div>' +
-          '<div class="cart-item-info">' +
-            '<div class="cart-item-name">' + item.name + '</div>' +
-            '<div class="cart-item-type ' + typeCls + '">' + typeTxt + '</div>' +
-            '<div class="cart-item-price">' + priceLine + '</div>' +
-            '<div class="cart-item-controls">' +
-              '<button class="qty-btn" onclick="changeQty(' + idx + ',-1)">&#x2212;</button>' +
-              '<span class="qty-val">' + item.qty + '</span>' +
-              '<button class="qty-btn" onclick="changeQty(' + idx + ',1)">&#x2b;</button>' +
-            '</div>' +
-          '</div>' +
-          '<button class="cart-item-remove" onclick="removeItem(' + idx + ')" title="Remove">&#x2715;</button>' +
-        '</div>';
-      }).join('');
+      // Flash "Added!" then close modal
+      var btn = document.getElementById('modal-add-btn');
+      if (btn) {
+        var orig = btn.textContent;
+        btn.textContent = '✓ Added to Cart!';
+        btn.disabled = true;
+        setTimeout(function() { closeModal(); btn.textContent = orig; btn.disabled = false; }, 900);
+      } else {
+        closeModal();
+      }
     }
 
-    function changeQty(idx, delta) {
-      cart[idx].qty += delta;
-      if (cart[idx].qty < 1) { cart.splice(idx, 1); }
-      saveCart(); updateCartCount(); renderCart();
+    // ── VARIANT PICKER ────────────────────────────────────────────
+    var _currentProduct  = null;
+    var _currentVariants = [];
+    var _dims            = [];
+    var _selectedOpts    = {};
+
+    var GENDER_LABELS = { M: "Men's", W: "Women's", U: 'Kids / Unisex' };
+
+    function uniqueVals(arr, key) {
+      var seen = {}, out = [];
+      arr.forEach(function(x) {
+        if (x[key] !== null && x[key] !== undefined && !seen[x[key]]) {
+          seen[x[key]] = true; out.push(x[key]);
+        }
+      });
+      return out;
     }
-    function removeItem(idx) {
-      cart.splice(idx, 1);
-      saveCart(); updateCartCount(); renderCart();
+
+    function getVariantDimensions(variants) {
+      var allSizes    = uniqueVals(variants, 'size');
+      var allColors   = uniqueVals(variants, 'color');
+      var allGenders  = uniqueVals(variants, 'gender');
+      var nonUGenders = allGenders.filter(function(g) { return g !== 'U'; });
+
+      var dims = [];
+      if (allSizes.length > 1) dims.push({ key: 'size', label: 'Size', opts: allSizes });
+
+      if (allColors.length > 1 && nonUGenders.length > 0) {
+        // Check if each color maps to exactly one gender (correlated → skip gender picker)
+        var correlated = allColors.every(function(c) {
+          return uniqueVals(variants.filter(function(v) { return v.color === c; }), 'gender').length === 1;
+        });
+        dims.push({ key: 'color', label: 'Color', opts: allColors });
+        if (!correlated) {
+          dims.push({ key: 'gender', label: 'For', opts: allGenders, labelMap: GENDER_LABELS });
+        }
+      } else {
+        if (allColors.length > 1)  dims.push({ key: 'color',  label: 'Color', opts: allColors });
+        if (allGenders.length > 1) dims.push({ key: 'gender', label: 'For',   opts: allGenders, labelMap: GENDER_LABELS });
+      }
+      return dims;
     }
 
-    document.getElementById('cart-btn').addEventListener('click', function() {
-      renderCart(); openCartDrawer();
-    });
-    document.getElementById('cart-drawer-close').addEventListener('click', closeCartDrawer);
-    cartBackdrop.addEventListener('click', closeCartDrawer);
-
-    // ── CHECKOUT ─────────────────────────────────────────────────
-    document.getElementById('btn-checkout').addEventListener('click', function() {
-      closeCartDrawer();
-      // Build order summary
-      var summaryEl = document.getElementById('checkout-summary');
-      var lines = cart.map(function(i) {
-        return '<div class="summary-line"><span>' + i.name + ' (' + i.type + ') x' + i.qty + '</span><span>$' + (i.price * i.qty).toFixed(2) + '</span></div>';
-      }).join('');
-      lines += '<div class="summary-line summary-total"><span>Total</span><span>$' + cartTotal().toFixed(2) + '</span></div>';
-      summaryEl.innerHTML = '<h3>Order Summary</h3>' + lines;
-      // Show form, hide success
-      document.getElementById('checkout-form-wrap').style.display = 'block';
-      document.getElementById('checkout-success').style.display   = 'none';
-      document.getElementById('checkout-overlay').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    });
-
-    function closeCheckout() {
-      document.getElementById('checkout-overlay').classList.remove('open');
-      document.body.style.overflow = '';
+    function getPossibleVals(dimKey) {
+      var otherDims = _dims.filter(function(d) { return d.key !== dimKey; });
+      var filtered  = _currentVariants.filter(function(v) {
+        return otherDims.every(function(d) {
+          return !_selectedOpts[d.key] || v[d.key] === _selectedOpts[d.key];
+        });
+      });
+      return uniqueVals(filtered, dimKey);
     }
-    document.getElementById('checkout-close').addEventListener('click', closeCheckout);
-    document.getElementById('checkout-overlay').addEventListener('click', function(e) {
-      if (e.target === document.getElementById('checkout-overlay')) closeCheckout();
-    });
 
-    document.getElementById('checkout-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      // Clear cart
-      cart = []; saveCart(); updateCartCount();
-      // Show success
-      document.getElementById('checkout-form-wrap').style.display = 'none';
-      document.getElementById('checkout-success').style.display   = 'block';
-    });
+    function findSelectedVariant() {
+      var allSelected = _dims.every(function(d) { return _selectedOpts[d.key]; });
+      if (!allSelected) return null;
+      return _currentVariants.find(function(v) {
+        return _dims.every(function(d) { return v[d.key] === _selectedOpts[d.key]; });
+      }) || null;
+    }
 
-    document.getElementById('btn-done').addEventListener('click', function() {
-      closeCheckout();
-      renderCart();
-    });
+    function buildVariantLabel(v) {
+      return _dims.map(function(d) {
+        var val = v[d.key];
+        return d.labelMap ? (d.labelMap[val] || val) : val;
+      }).filter(Boolean).join(' / ');
+    }
+
+    function renderVariantPicker() {
+      var container = document.getElementById('modal-picker-wrap');
+      if (!container) return;
+      container.innerHTML = '';
+
+      _dims.forEach(function(dim) {
+        var possible = getPossibleVals(dim.key);
+        var selected = _selectedOpts[dim.key];
+
+        var labelEl = document.createElement('div');
+        labelEl.className = 'picker-label';
+        labelEl.textContent = dim.label + (selected ? ': ' + (dim.labelMap ? (dim.labelMap[selected] || selected) : selected) : '');
+        container.appendChild(labelEl);
+
+        var pillsEl = document.createElement('div');
+        pillsEl.className = 'picker-pills';
+        dim.opts.forEach(function(val) {
+          var pill = document.createElement('button');
+          pill.className = 'picker-pill' + (selected === val ? ' selected' : '');
+          pill.textContent = dim.labelMap ? (dim.labelMap[val] || val) : val;
+          pill.disabled = possible.indexOf(val) < 0;
+          pill.addEventListener('click', function() { pickOpt(dim.key, val); });
+          pillsEl.appendChild(pill);
+        });
+        container.appendChild(pillsEl);
+      });
+
+      updateAddBtn();
+    }
+
+    function pickOpt(key, val) {
+      _selectedOpts[key] = (_selectedOpts[key] === val) ? null : val;
+      renderVariantPicker();
+    }
+
+    function updateAddBtn() {
+      var btn = document.getElementById('modal-add-btn');
+      if (!btn || !_currentProduct) return;
+      var p       = _currentProduct;
+      var canBuy  = p.availability === 'Both' || p.availability === 'Sale only';
+
+      if (!canBuy) { btn.style.display = 'none'; return; }
+      btn.style.display = 'block';
+
+      if (_dims.length > 0) {
+        var variant = findSelectedVariant();
+        if (variant) {
+          btn.disabled = false;
+          btn.textContent = 'Add to Cart — $' + Number(variant.unit_price).toFixed(2);
+          btn.dataset.readySku   = variant.sku;
+          btn.dataset.readyPrice = variant.unit_price;
+          btn.dataset.readyLabel = buildVariantLabel(variant);
+        } else {
+          btn.disabled = true;
+          btn.textContent = 'Add to Cart';
+          delete btn.dataset.readySku;
+        }
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Add to Cart — $' + Number(p.unit_price).toFixed(2);
+        btn.dataset.readySku   = p.sku;
+        btn.dataset.readyPrice = p.unit_price;
+        btn.dataset.readyLabel = '';
+      }
+    }
 
     // ── PRODUCT MODAL ─────────────────────────────────────────────
     var overlay  = document.getElementById('modal-overlay');
     var btnClose = document.getElementById('modal-close');
 
     function openModal(card) {
-      var emoji     = card.querySelector('.card-photo').textContent.trim();
-      var name      = card.querySelector('.card-name').textContent.trim();
-      var priceRows = card.querySelectorAll('.price-row');
-      var badges    = card.querySelectorAll('.badge');
-      var category  = card.closest('.category-group')
-                          .querySelector('.category-label')
-                          .textContent.trim();
-
+      var sku          = card.dataset.sku;
+      var emoji        = card.dataset.emoji;
+      var name         = card.querySelector('.card-name').textContent.trim();
+      var category     = card.closest('.category-group').querySelector('.category-label').textContent.trim();
       var studioSrc    = card.dataset.studio    || null;
       var lifestyleSrc = card.dataset.lifestyle || null;
-      var variants     = card.dataset.variants  || null;
 
-      // Studio shot
+      var product  = _productsMap[sku] || null;
+      var variants = _variantsByParent[sku] || [];
+
+      _currentProduct  = product;
+      _currentVariants = variants;
+      _selectedOpts    = {};
+      _dims            = variants.length > 0 ? getVariantDimensions(variants) : [];
+
+      // Studio image
       var studioEl = document.getElementById('modal-studio');
       studioEl.innerHTML = studioSrc
         ? '<img src="' + studioSrc + '" alt="' + name + '" />'
         : emoji;
 
-      // Lifestyle shot
+      // Lifestyle image
       var lifestyleEl = document.getElementById('modal-lifestyle');
-      if (lifestyleSrc) {
-        lifestyleEl.innerHTML = '<img src="' + lifestyleSrc + '" alt="' + name + ' lifestyle" /><span class="lifestyle-label">Lifestyle</span>';
-      } else {
-        lifestyleEl.innerHTML = '<span style="opacity:0.3;font-size:2.2rem">' + emoji + '</span><span class="lifestyle-label">Lifestyle</span>';
-      }
+      lifestyleEl.innerHTML = lifestyleSrc
+        ? '<img src="' + lifestyleSrc + '" alt="' + name + ' lifestyle" /><span class="lifestyle-label">Lifestyle</span>'
+        : '<span style="opacity:0.3;font-size:2.2rem">' + emoji + '</span><span class="lifestyle-label">Lifestyle</span>';
 
       document.getElementById('modal-category').textContent = category;
       document.getElementById('modal-name').textContent     = name;
@@ -1238,52 +674,34 @@
       // Pricing
       var pricingEl = document.getElementById('modal-pricing');
       pricingEl.innerHTML = '';
-      var buyPrice = null, rentPrice = null;
-      priceRows.forEach(function(row) {
-        var label = row.querySelector('.price-label').textContent;
-        var value = row.querySelector('.price-value').textContent;
-        var sub   = label === 'Rent' ? ' per day' : '';
-        pricingEl.innerHTML += '<div class="modal-price-row"><span class="modal-price-label">' + label + '</span><span class="modal-price-value">' + value + '</span><span class="modal-price-sub">' + sub + '</span></div>';
-        if (label === 'Buy')  buyPrice  = value;
-        if (label === 'Rent') rentPrice = value;
-      });
+      if (product) {
+        var canBuy  = product.availability === 'Both' || product.availability === 'Sale only';
+        var canRent = product.availability === 'Both' || product.availability === 'Rental only';
+        var priceStr = variants.length > 0
+          ? 'from $' + Number(product.unit_price).toFixed(2)
+          : '$' + Number(product.unit_price).toFixed(2);
+        if (canBuy) {
+          pricingEl.innerHTML += '<div class="modal-price-row"><span class="modal-price-label">Buy</span><span class="modal-price-value">' + priceStr + '</span></div>';
+        }
+        if (canRent && product.rental_rate) {
+          pricingEl.innerHTML += '<div class="modal-price-row"><span class="modal-price-label">Rent</span><span class="modal-price-value">$' + Number(product.rental_rate).toFixed(2) + '</span><span class="modal-price-sub">per day</span></div>';
+        }
+      }
 
       // Badges
       var badgesEl = document.getElementById('modal-badges');
       badgesEl.innerHTML = '';
-      badges.forEach(function(b) {
+      card.querySelectorAll('.badge').forEach(function(b) {
         var cls = b.classList.contains('badge-sale') ? 'badge-sale' : 'badge-rent';
         badgesEl.innerHTML += '<span class="badge ' + cls + '">' + b.textContent + '</span>';
       });
 
-      // Variants
-      var variantsWrap = document.getElementById('modal-variants');
-      if (variants) {
-        document.getElementById('modal-variants-text').textContent = variants;
-        variantsWrap.style.display = 'block';
-      } else {
-        variantsWrap.style.display = 'none';
-      }
+      // In-store rental note (availability = 'Both')
+      var noteEl = document.getElementById('modal-rental-note');
+      if (noteEl) noteEl.style.display = (product && product.availability === 'Both') ? 'block' : 'none';
 
-      // Add to cart buttons
-      var actionsEl = document.getElementById('modal-actions');
-      actionsEl.innerHTML = '';
-      if (buyPrice) {
-        var bp = buyPrice, n = name, em = emoji;
-        var buyBtn = document.createElement('button');
-        buyBtn.className = 'btn-add btn-buy';
-        buyBtn.textContent = 'Buy — ' + bp;
-        buyBtn.addEventListener('click', function(e) { e.stopPropagation(); addToCart(n, em, bp, 'Buy'); });
-        actionsEl.appendChild(buyBtn);
-      }
-      if (rentPrice) {
-        var rp = rentPrice, n2 = name, em2 = emoji;
-        var rentBtn = document.createElement('button');
-        rentBtn.className = 'btn-add btn-rent';
-        rentBtn.textContent = 'Rent — ' + rp;
-        rentBtn.addEventListener('click', function(e) { e.stopPropagation(); addToCart(n2, em2, rp, 'Rent'); });
-        actionsEl.appendChild(rentBtn);
-      }
+      // Variant pickers
+      renderVariantPicker();
 
       overlay.classList.add('open');
       document.body.style.overflow = 'hidden';
@@ -1294,24 +712,31 @@
       document.body.style.overflow = '';
     }
 
-    document.querySelectorAll('.card').forEach(function(card) {
-      card.addEventListener('click', function() { openModal(card); });
+    // Card clicks — event delegation (cards are rendered dynamically)
+    document.getElementById('gear-page').addEventListener('click', function(e) {
+      var card = e.target.closest('.card');
+      if (card) openModal(card);
     });
+
     btnClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeCartDrawer(); closeCheckout(); } });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
-    // Init
-    updateCartCount();
-
-    // Swap emoji placeholders for real images where available
-    document.querySelectorAll('.card').forEach(function(card) {
-      var studio = card.dataset.studio;
-      if (!studio) return;
-      var photoEl = card.querySelector('.card-photo');
-      var emoji   = photoEl.textContent.trim();
-      photoEl.innerHTML = '<img src="' + studio + '" alt="' + card.querySelector('.card-name').textContent.trim() + '" onerror="this.parentElement.textContent=\'' + emoji + '\'">';
+    // Add to Cart button
+    document.getElementById('modal-add-btn').addEventListener('click', function() {
+      if (this.disabled || !this.dataset.readySku) return;
+      var p = _currentProduct;
+      addToCart(
+        this.dataset.readySku,
+        p.name,
+        this.dataset.readyLabel || '',
+        p.emoji,
+        p.studio_image || null,
+        parseFloat(this.dataset.readyPrice)
+      );
     });
+
+    renderProducts();
   </script>
 
 </body>
