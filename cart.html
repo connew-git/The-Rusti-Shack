@@ -15,6 +15,7 @@
       --drift: #8b6f50;
       --white: #ffffff;
       --dark:  #2c2c2c;
+      --red:   #c0392b;
     }
 
     body { font-family: 'Lato', sans-serif; background: var(--sand); color: var(--dark); }
@@ -63,14 +64,10 @@
     .page-header p { font-size: 1rem; font-weight: 300; opacity: 0.88; }
 
     /* ── LAYOUT ── */
-    .cart-page {
-      padding: 3rem 2rem 5rem; max-width: 780px; margin: 0 auto;
-    }
+    .cart-page { padding: 3rem 2rem 5rem; max-width: 780px; margin: 0 auto; }
 
     /* ── EMPTY STATE ── */
-    .cart-empty {
-      text-align: center; padding: 4rem 1rem;
-    }
+    .cart-empty { text-align: center; padding: 4rem 1rem; }
     .cart-empty .empty-icon { font-size: 4rem; display: block; margin-bottom: 1rem; }
     .cart-empty h2 { font-family: 'Pacifico', cursive; font-size: 1.6rem; color: var(--drift); margin-bottom: 0.6rem; }
     .cart-empty p { color: #888; margin-bottom: 2rem; }
@@ -78,13 +75,12 @@
       display: inline-block; padding: 0.75rem 2rem;
       background: var(--ocean); color: var(--white); text-decoration: none;
       border-radius: 50px; font-weight: 700; font-size: 0.9rem;
-      letter-spacing: 0.05em; text-transform: uppercase;
-      transition: background 0.2s;
+      letter-spacing: 0.05em; text-transform: uppercase; transition: background 0.2s;
     }
     .btn-shop:hover { background: #21606e; }
 
     /* ── CART ITEMS ── */
-    .cart-items-wrap { display: flex; flex-direction: column; gap: 0; }
+    .cart-items-wrap { display: flex; flex-direction: column; }
 
     .cart-item {
       display: flex; gap: 1rem; align-items: flex-start;
@@ -95,8 +91,7 @@
     .item-photo {
       width: 72px; height: 72px; flex-shrink: 0; border-radius: 10px;
       background: #e8dcc8; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem;
+      display: flex; align-items: center; justify-content: center; font-size: 2rem;
     }
     .item-photo img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -110,8 +105,7 @@
     .qty-btn {
       width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid #ccc;
       background: #f5f5f5; cursor: pointer; font-size: 1rem; line-height: 1;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
+      display: flex; align-items: center; justify-content: center; transition: background 0.15s;
     }
     .qty-btn:hover { background: #e0e0e0; }
     .qty-val { font-weight: 700; font-size: 0.92rem; min-width: 22px; text-align: center; }
@@ -126,7 +120,7 @@
     .item-unit-price { font-size: 0.8rem; color: #999; margin-bottom: 0.2rem; }
     .item-line-total { font-weight: 700; font-size: 1rem; }
 
-    /* ── ORDER SUMMARY ── */
+    /* ── ORDER SUMMARY (cart page) ── */
     .order-summary {
       margin-top: 2rem; background: var(--white); border-radius: 16px;
       padding: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
@@ -143,9 +137,7 @@
     .summary-note { font-size: 0.78rem; color: #aaa; margin-top: 0.5rem; }
 
     /* ── ACTION BUTTONS ── */
-    .cart-actions {
-      display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;
-    }
+    .cart-actions { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
     .btn-keep-shopping {
       flex: 1; min-width: 140px; padding: 0.85rem 1.2rem; border-radius: 50px;
       border: 2px solid var(--ocean); background: none; color: var(--ocean);
@@ -158,70 +150,120 @@
       flex: 2; min-width: 200px; padding: 0.85rem 1.5rem; border-radius: 50px;
       border: none; background: var(--coral); color: var(--white);
       font-family: 'Lato', sans-serif; font-weight: 700; font-size: 0.95rem;
-      letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer;
-      transition: background 0.2s;
+      letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.2s;
     }
     .btn-checkout:hover { background: #c85f40; }
 
-    /* ── CHECKOUT MODAL ── */
+    /* ── CHECKOUT OVERLAY ── */
     .checkout-overlay {
       display: none; position: fixed; inset: 0; z-index: 600;
-      background: rgba(0,0,0,0.55);
-      align-items: center; justify-content: center; padding: 1.5rem;
+      background: rgba(0,0,0,0.55); align-items: flex-start;
+      justify-content: center; padding: 2rem 1rem; overflow-y: auto;
     }
     .checkout-overlay.open { display: flex; }
+
+    /* ── CHECKOUT MODAL (2-col desktop) ── */
     .checkout-modal {
       background: var(--white); border-radius: 20px;
-      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
-      padding: 2rem; position: relative;
+      width: 100%; max-width: 900px;
+      display: grid; grid-template-columns: 280px 1fr;
+      position: relative; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+      margin: auto;
     }
-    .checkout-modal h2 {
-      font-family: 'Pacifico', cursive; font-size: 1.6rem;
-      color: var(--drift); margin-bottom: 0.3rem;
+    .checkout-close {
+      position: absolute; top: 1rem; right: 1rem; z-index: 10;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(0,0,0,0.12); border: none; cursor: pointer; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
     }
-    .checkout-sub { color: #888; font-size: 0.9rem; margin-bottom: 1.5rem; }
-    .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
-    .form-group label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--drift); }
-    .form-group input, .form-group textarea {
-      padding: 0.65rem 0.9rem; border: 1px solid #ddd; border-radius: 10px;
-      font-family: 'Lato', sans-serif; font-size: 0.95rem; outline: none;
-      transition: border-color 0.2s;
+    .checkout-close:hover { background: rgba(0,0,0,0.22); }
+
+    /* ── LEFT: order summary panel ── */
+    .checkout-summary-panel {
+      background: var(--ocean); color: var(--white);
+      padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;
     }
-    .form-group input:focus, .form-group textarea:focus { border-color: var(--ocean); }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .checkout-summary-box {
-      background: var(--sand); border-radius: 12px; padding: 1rem;
-      margin-bottom: 1.2rem; font-size: 0.85rem;
+    .csp-heading {
+      font-family: 'Pacifico', cursive; font-size: 1.1rem;
+      margin-bottom: 0.25rem; opacity: 0.9;
     }
-    .checkout-summary-box h3 {
-      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--drift); margin-bottom: 0.6rem;
+    .csp-item {
+      display: flex; gap: 0.6rem; align-items: flex-start;
+      font-size: 0.83rem; padding: 0.4rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
     }
-    .cs-row { display: flex; justify-content: space-between; padding: 0.2rem 0; }
-    .cs-total { border-top: 1px solid #ddd; margin-top: 0.5rem; padding-top: 0.5rem; font-weight: 700; }
+    .csp-item-photo {
+      font-size: 1.4rem; flex-shrink: 0; width: 32px; text-align: center;
+    }
+    .csp-item-photo img { width: 32px; height: 32px; object-fit: cover; border-radius: 5px; }
+    .csp-item-name { flex: 1; font-weight: 700; line-height: 1.3; }
+    .csp-item-variant { font-size: 0.72rem; opacity: 0.75; font-weight: 400; }
+    .csp-item-price { font-weight: 700; white-space: nowrap; }
+    .csp-divider { border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 0.25rem 0; }
+    .csp-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.2rem 0; }
+    .csp-row.total { font-size: 1rem; font-weight: 700; margin-top: 0.25rem; }
+
+    /* ── RIGHT: checkout form ── */
+    .checkout-form-panel { padding: 2rem; overflow-y: auto; }
+    .cf-heading {
+      font-family: 'Pacifico', cursive; font-size: 1.4rem; color: var(--drift);
+      margin-bottom: 0.25rem;
+    }
+    .cf-sub { color: #888; font-size: 0.88rem; margin-bottom: 1.5rem; }
+
+    /* Form grid */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+    .form-grid .span2 { grid-column: 1 / -1; }
+
+    .fld { display: flex; flex-direction: column; gap: 0.2rem; margin-bottom: 0.9rem; }
+    .fld label { font-size: 0.73rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--drift); }
+    .fld .req { color: var(--coral); }
+    .fld input, .fld select {
+      padding: 0.6rem 0.85rem; border: 1.5px solid #ddd; border-radius: 10px;
+      font-family: 'Lato', sans-serif; font-size: 0.92rem; outline: none;
+      transition: border-color 0.2s; background: var(--white);
+    }
+    .fld input:focus, .fld select:focus { border-color: var(--ocean); }
+    .fld input.field-error, .fld select.field-error { border-color: var(--red); }
+    .fld .err-msg { font-size: 0.72rem; color: var(--red); min-height: 1rem; }
+
+    .loyalty-row {
+      display: flex; align-items: flex-start; gap: 0.6rem;
+      margin-bottom: 1.2rem; cursor: pointer;
+    }
+    .loyalty-row input[type=checkbox] { margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
+    .loyalty-row .loyalty-label { font-size: 0.85rem; color: #555; line-height: 1.4; }
+    .loyalty-row .loyalty-label strong { color: var(--drift); }
+
     .btn-submit {
-      width: 100%; padding: 0.85rem; background: var(--ocean); color: var(--white);
+      width: 100%; padding: 0.9rem; background: var(--coral); color: var(--white);
       border: none; border-radius: 50px; font-family: 'Lato', sans-serif;
       font-weight: 700; font-size: 0.95rem; letter-spacing: 0.06em;
       text-transform: uppercase; cursor: pointer; transition: background 0.2s;
     }
-    .btn-submit:hover { background: #21606e; }
-    .checkout-close {
-      position: absolute; top: 1rem; right: 1rem;
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #eee; border: none; cursor: pointer; font-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
+    .btn-submit:hover:not(:disabled) { background: #c85f40; }
+    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .api-error {
+      font-size: 0.82rem; color: var(--red); margin-top: 0.75rem;
+      min-height: 1.2rem; text-align: center;
     }
-    .checkout-close:hover { background: #ddd; }
-    .checkout-success { text-align: center; padding: 1rem 0; }
-    .checkout-success .success-icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
-    .checkout-success h2 { color: var(--ocean); margin-bottom: 0.6rem; font-family: 'Pacifico', cursive; }
-    .checkout-success p { color: #666; font-size: 0.95rem; line-height: 1.6; }
+
+    /* ── SUCCESS STATE ── */
+    .checkout-success {
+      grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem;
+    }
+    .checkout-success .success-icon { font-size: 4rem; display: block; margin-bottom: 1rem; }
+    .checkout-success h2 { font-family: 'Pacifico', cursive; font-size: 1.8rem; color: var(--ocean); margin-bottom: 0.6rem; }
+    .checkout-success p { color: #666; font-size: 0.95rem; line-height: 1.7; }
+    .checkout-success .order-ref { font-size: 0.78rem; color: #aaa; margin-top: 0.5rem; }
     .btn-done {
-      margin-top: 1.5rem; padding: 0.7rem 2rem;
+      margin-top: 1.8rem; padding: 0.75rem 2.5rem;
       background: var(--coral); color: var(--white); border: none;
       border-radius: 50px; font-family: 'Lato', sans-serif;
-      font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;
+      font-weight: 700; cursor: pointer; font-size: 0.92rem; transition: background 0.2s;
     }
     .btn-done:hover { background: #c85f40; }
 
@@ -233,11 +275,16 @@
     footer span { color: var(--coral); }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 520px) {
+    @media (max-width: 660px) {
       nav { padding: 0.8rem 1.2rem; }
       .cart-page { padding: 2rem 1rem 4rem; }
       .cart-actions { flex-direction: column; }
       .btn-keep-shopping, .btn-checkout { flex: none; width: 100%; }
+      .checkout-modal { grid-template-columns: 1fr; }
+      .checkout-summary-panel { padding: 1.5rem; }
+      .checkout-form-panel { padding: 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .span2 { grid-column: 1; }
     }
   </style>
 </head>
@@ -268,40 +315,156 @@
 
   <!-- ── CHECKOUT MODAL ── -->
   <div class="checkout-overlay" id="checkout-overlay">
-    <div class="checkout-modal">
-      <button class="checkout-close" id="checkout-close">&#x2715;</button>
-      <div id="checkout-form-wrap">
-        <h2>Place Your Order</h2>
-        <p class="checkout-sub">We'll confirm and arrange payment by email.</p>
-        <div class="checkout-summary-box" id="checkout-summary"></div>
-        <form id="checkout-form">
-          <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="f-name" required placeholder="e.g. Maria Santos" />
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="f-email" required placeholder="you@example.com" />
-          </div>
-          <div class="form-group">
-            <label>Phone (optional)</label>
-            <input type="tel" id="f-phone" placeholder="+63 900 000 0000" />
-          </div>
-          <div class="form-group">
-            <label>Notes</label>
-            <textarea id="f-notes" placeholder="Anything we should know about your order…"></textarea>
-          </div>
-          <button type="submit" class="btn-submit">Send Order Request</button>
-        </form>
+    <div class="checkout-modal" id="checkout-modal">
+      <button class="checkout-close" id="checkout-close" aria-label="Close">&#x2715;</button>
+
+      <!-- Left: order summary -->
+      <div class="checkout-summary-panel" id="checkout-summary-panel">
+        <div class="csp-heading">Order Summary</div>
+        <div id="csp-items"></div>
+        <hr class="csp-divider" />
+        <div class="csp-row"><span>Subtotal</span><span id="csp-subtotal"></span></div>
+        <div class="csp-row"><span>Shipping</span><span>$12.00</span></div>
+        <hr class="csp-divider" />
+        <div class="csp-row total"><span>Total</span><span id="csp-total"></span></div>
       </div>
+
+      <!-- Right: customer form -->
+      <div class="checkout-form-panel" id="checkout-form-wrap">
+        <div class="cf-heading">Contact &amp; Shipping</div>
+        <p class="cf-sub">We'll confirm your order by email and arrange payment.</p>
+
+        <form id="checkout-form" novalidate>
+          <div class="form-grid">
+
+            <div class="fld">
+              <label for="f-firstname">First Name <span class="req">*</span></label>
+              <input type="text" id="f-firstname" autocomplete="given-name" />
+              <span class="err-msg" id="f-firstname-err"></span>
+            </div>
+
+            <div class="fld">
+              <label for="f-lastname">Last Name <span class="req">*</span></label>
+              <input type="text" id="f-lastname" autocomplete="family-name" />
+              <span class="err-msg" id="f-lastname-err"></span>
+            </div>
+
+            <div class="fld span2">
+              <label for="f-email">Email Address <span class="req">*</span></label>
+              <input type="email" id="f-email" autocomplete="email" placeholder="you@example.com" />
+              <span class="err-msg" id="f-email-err"></span>
+            </div>
+
+            <div class="fld span2">
+              <label for="f-phone">Phone</label>
+              <input type="tel" id="f-phone" autocomplete="tel" placeholder="+63 900 000 0000" />
+              <span class="err-msg" id="f-phone-err"></span>
+            </div>
+
+            <div class="fld span2">
+              <label for="f-street">Street Address</label>
+              <input type="text" id="f-street" autocomplete="street-address" placeholder="House / Unit, Street" />
+              <span class="err-msg" id="f-street-err"></span>
+            </div>
+
+            <div class="fld">
+              <label for="f-city">City <span class="req">*</span></label>
+              <input type="text" id="f-city" autocomplete="address-level2" />
+              <span class="err-msg" id="f-city-err"></span>
+            </div>
+
+            <div class="fld">
+              <label for="f-country">Country <span class="req">*</span></label>
+              <select id="f-country" autocomplete="country">
+                <option value="">— Select —</option>
+                <option value="Philippines">Philippines</option>
+                <option value="">──────────</option>
+                <option value="Australia">Australia</option>
+                <option value="Austria">Austria</option>
+                <option value="Belgium">Belgium</option>
+                <option value="Brazil">Brazil</option>
+                <option value="Canada">Canada</option>
+                <option value="China">China</option>
+                <option value="Czech Republic">Czech Republic</option>
+                <option value="Denmark">Denmark</option>
+                <option value="Finland">Finland</option>
+                <option value="France">France</option>
+                <option value="Germany">Germany</option>
+                <option value="Greece">Greece</option>
+                <option value="Hong Kong">Hong Kong</option>
+                <option value="Hungary">Hungary</option>
+                <option value="India">India</option>
+                <option value="Indonesia">Indonesia</option>
+                <option value="Ireland">Ireland</option>
+                <option value="Israel">Israel</option>
+                <option value="Italy">Italy</option>
+                <option value="Japan">Japan</option>
+                <option value="Malaysia">Malaysia</option>
+                <option value="Mexico">Mexico</option>
+                <option value="Netherlands">Netherlands</option>
+                <option value="New Zealand">New Zealand</option>
+                <option value="Norway">Norway</option>
+                <option value="Poland">Poland</option>
+                <option value="Portugal">Portugal</option>
+                <option value="Russia">Russia</option>
+                <option value="Saudi Arabia">Saudi Arabia</option>
+                <option value="Singapore">Singapore</option>
+                <option value="South Korea">South Korea</option>
+                <option value="Spain">Spain</option>
+                <option value="Sweden">Sweden</option>
+                <option value="Switzerland">Switzerland</option>
+                <option value="Taiwan">Taiwan</option>
+                <option value="Thailand">Thailand</option>
+                <option value="United Arab Emirates">United Arab Emirates</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United States">United States</option>
+                <option value="Vietnam">Vietnam</option>
+                <option value="">──────────</option>
+                <option value="Other">Other</option>
+              </select>
+              <span class="err-msg" id="f-country-err"></span>
+            </div>
+
+            <div class="fld">
+              <label for="f-region">Region / State</label>
+              <input type="text" id="f-region" autocomplete="address-level1" />
+              <span class="err-msg" id="f-region-err"></span>
+            </div>
+
+            <div class="fld">
+              <label for="f-postal">Postal Code</label>
+              <input type="text" id="f-postal" autocomplete="postal-code" />
+              <span class="err-msg" id="f-postal-err"></span>
+            </div>
+
+          </div><!-- /form-grid -->
+
+          <label class="loyalty-row">
+            <input type="checkbox" id="f-loyalty" />
+            <span class="loyalty-label">
+              Sign me up for <strong>Rusti's loyalty list</strong> — occasional deals and island news, no spam.
+            </span>
+          </label>
+
+          <button type="submit" class="btn-submit" id="checkout-submit-btn">Place Order Request</button>
+          <div class="api-error" id="api-error"></div>
+        </form>
+      </div><!-- /checkout-form-wrap -->
+
+      <!-- Success state spans both columns -->
       <div class="checkout-success" id="checkout-success" style="display:none">
         <span class="success-icon">🌊</span>
         <h2>You're all set!</h2>
-        <p>We got your order. Expect an email from us soon to confirm and sort payment.<br/>See you at the shack!</p>
+        <p>
+          Order received. We'll send a confirmation to your email shortly<br />
+          and follow up to sort payment. See you at the shack!
+        </p>
+        <p class="order-ref">Reference: <span id="success-order-id"></span></p>
         <button class="btn-done" id="btn-done">Back to Gear</button>
       </div>
-    </div>
-  </div>
+
+    </div><!-- /checkout-modal -->
+  </div><!-- /checkout-overlay -->
 
   <script>
     var SHIPPING = 12;
@@ -326,10 +489,11 @@
       el.classList.toggle('has-items', total > 0);
     }
 
+    // ── RENDER CART PAGE ──────────────────────────────────────────
     function renderCart() {
-      var cart   = getCart();
-      var page   = document.getElementById('cart-page');
-      var subEl  = document.getElementById('cart-header-sub');
+      var cart  = getCart();
+      var page  = document.getElementById('cart-page');
+      var subEl = document.getElementById('cart-header-sub');
 
       updateNavCount();
 
@@ -349,16 +513,12 @@
       subEl.textContent = qty + ' item' + (qty !== 1 ? 's' : '');
 
       var itemsHtml = cart.map(function(item, idx) {
-        var photoHtml;
-        if (item.studioImage) {
-          photoHtml = '<div class="item-photo"><img src="' + item.studioImage +
-            '" alt="' + item.name + '" onerror="this.parentNode.textContent=\'' + item.emoji + '\'" /></div>';
-        } else {
-          photoHtml = '<div class="item-photo">' + item.emoji + '</div>';
-        }
+        var photoHtml = item.studioImage
+          ? '<div class="item-photo"><img src="' + item.studioImage + '" alt="' + item.name +
+            '" onerror="this.parentNode.textContent=\'' + item.emoji + '\'" /></div>'
+          : '<div class="item-photo">' + item.emoji + '</div>';
         var variantHtml = item.variantLabel
           ? '<div class="item-variant">' + item.variantLabel + '</div>' : '';
-        var lineTotal = (item.price * item.qty).toFixed(2);
 
         return '<div class="cart-item">' +
           photoHtml +
@@ -374,7 +534,7 @@
           '</div>' +
           '<div class="item-price">' +
             '<div class="item-unit-price">$' + Number(item.price).toFixed(2) + ' ea.</div>' +
-            '<div class="item-line-total">$' + lineTotal + '</div>' +
+            '<div class="item-line-total">$' + (item.price * item.qty).toFixed(2) + '</div>' +
           '</div>' +
         '</div>';
       }).join('');
@@ -388,7 +548,7 @@
           '<div class="summary-row"><span class="label">Shipping</span><span class="value">$' + SHIPPING.toFixed(2) + '</span></div>' +
           '<hr class="summary-divider" />' +
           '<div class="summary-row summary-total"><span class="label">Total</span><span class="value">$' + total.toFixed(2) + '</span></div>' +
-          '<p class="summary-note">Flat-rate shipping. Final shipping confirmed at checkout.</p>' +
+          '<p class="summary-note">Flat-rate shipping. Confirmed at checkout.</p>' +
         '</div>' +
         '<div class="cart-actions">' +
           '<a href="gear.html" class="btn-keep-shopping">Keep Shopping</a>' +
@@ -397,55 +557,56 @@
 
       page.innerHTML = '<div class="cart-items-wrap">' + itemsHtml + '</div>' + summaryHtml;
 
-      // Qty buttons
       page.querySelectorAll('.qty-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
-          var idx   = parseInt(this.dataset.idx);
-          var delta = parseInt(this.dataset.delta);
-          var c     = getCart();
+          var idx = parseInt(this.dataset.idx), delta = parseInt(this.dataset.delta);
+          var c = getCart();
           c[idx].qty += delta;
           if (c[idx].qty < 1) c.splice(idx, 1);
-          saveCart(c);
-          renderCart();
+          saveCart(c); renderCart();
         });
       });
 
-      // Remove buttons
       page.querySelectorAll('.item-remove').forEach(function(btn) {
         btn.addEventListener('click', function() {
-          var idx = parseInt(this.dataset.idx);
-          var c   = getCart();
-          c.splice(idx, 1);
-          saveCart(c);
-          renderCart();
+          var c = getCart(); c.splice(parseInt(this.dataset.idx), 1);
+          saveCart(c); renderCart();
         });
       });
 
-      // Checkout button (re-queried after render)
       var checkoutBtn = document.getElementById('btn-checkout');
-      if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function() { openCheckout(); });
-      }
+      if (checkoutBtn) checkoutBtn.addEventListener('click', openCheckout);
     }
 
     // ── CHECKOUT MODAL ────────────────────────────────────────────
-    function openCheckout() {
-      var cart  = getCart();
-      var sub   = cartSubtotal(cart);
-      var total = sub + SHIPPING;
+    function buildSummaryPanel() {
+      var cart = getCart();
+      var sub  = cartSubtotal(cart);
 
-      var lines = cart.map(function(i) {
-        var label = i.name + (i.variantLabel ? ' (' + i.variantLabel + ')' : '') + ' ×' + i.qty;
-        return '<div class="cs-row"><span>' + label + '</span><span>$' + (i.price * i.qty).toFixed(2) + '</span></div>';
+      var itemsHtml = cart.map(function(item) {
+        var photo = item.studioImage
+          ? '<div class="csp-item-photo"><img src="' + item.studioImage + '" alt="" onerror="this.parentNode.textContent=\'' + item.emoji + '\'" /></div>'
+          : '<div class="csp-item-photo">' + item.emoji + '</div>';
+        var variant = item.variantLabel ? '<div class="csp-item-variant">' + item.variantLabel + '</div>' : '';
+        return '<div class="csp-item">' +
+          photo +
+          '<div class="csp-item-name">' + item.name + ' ×' + item.qty + variant + '</div>' +
+          '<div class="csp-item-price">$' + (item.price * item.qty).toFixed(2) + '</div>' +
+        '</div>';
       }).join('');
-      lines += '<div class="cs-row"><span>Shipping</span><span>$' + SHIPPING.toFixed(2) + '</span></div>';
-      lines += '<div class="cs-row cs-total"><span>Total</span><span>$' + total.toFixed(2) + '</span></div>';
 
-      var summaryEl = document.getElementById('checkout-summary');
-      summaryEl.innerHTML = '<h3>Order Summary</h3>' + lines;
+      document.getElementById('csp-items').innerHTML     = itemsHtml;
+      document.getElementById('csp-subtotal').textContent = '$' + sub.toFixed(2);
+      document.getElementById('csp-total').textContent    = '$' + (sub + SHIPPING).toFixed(2);
+    }
 
-      document.getElementById('checkout-form-wrap').style.display = 'block';
-      document.getElementById('checkout-success').style.display   = 'none';
+    function openCheckout() {
+      buildSummaryPanel();
+      document.getElementById('checkout-form-wrap').style.display  = 'block';
+      document.getElementById('checkout-success').style.display    = 'none';
+      document.getElementById('api-error').textContent             = '';
+      document.getElementById('checkout-submit-btn').disabled      = false;
+      document.getElementById('checkout-submit-btn').textContent   = 'Place Order Request';
       document.getElementById('checkout-overlay').classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -457,16 +618,97 @@
 
     document.getElementById('checkout-close').addEventListener('click', closeCheckout);
     document.getElementById('checkout-overlay').addEventListener('click', function(e) {
-      if (e.target === document.getElementById('checkout-overlay')) closeCheckout();
+      if (e.target === this) closeCheckout();
     });
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeCheckout(); });
 
-    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    // ── VALIDATION ────────────────────────────────────────────────
+    var REQUIRED_FIELDS = [
+      { id: 'f-firstname', label: 'First name' },
+      { id: 'f-lastname',  label: 'Last name'  },
+      { id: 'f-email',     label: 'Email'      },
+      { id: 'f-city',      label: 'City'       },
+      { id: 'f-country',   label: 'Country'    },
+    ];
+
+    function setFieldError(id, msg) {
+      var el    = document.getElementById(id);
+      var errEl = document.getElementById(id + '-err');
+      if (msg) { el.classList.add('field-error');    if (errEl) errEl.textContent = msg; }
+      else     { el.classList.remove('field-error'); if (errEl) errEl.textContent = ''; }
+    }
+
+    function validateForm() {
+      var valid = true;
+      REQUIRED_FIELDS.forEach(function(f) {
+        var val = document.getElementById(f.id).value.trim();
+        if (!val) {
+          setFieldError(f.id, f.label + ' is required.');
+          valid = false;
+        } else if (f.id === 'f-email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+          setFieldError(f.id, 'Please enter a valid email address.');
+          valid = false;
+        } else {
+          setFieldError(f.id, '');
+        }
+      });
+      return valid;
+    }
+
+    // Clear error on input
+    REQUIRED_FIELDS.forEach(function(f) {
+      var el = document.getElementById(f.id);
+      if (el) el.addEventListener('input', function() { setFieldError(f.id, ''); });
+    });
+
+    // ── FORM SUBMIT ───────────────────────────────────────────────
+    document.getElementById('checkout-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      saveCart([]);
-      document.getElementById('checkout-form-wrap').style.display = 'none';
-      document.getElementById('checkout-success').style.display   = 'block';
-      updateNavCount();
+      if (!validateForm()) return;
+
+      var btn = document.getElementById('checkout-submit-btn');
+      var errEl = document.getElementById('api-error');
+      btn.disabled = true;
+      btn.textContent = 'Placing order…';
+      errEl.textContent = '';
+
+      var customer = {
+        firstName:     document.getElementById('f-firstname').value.trim(),
+        lastName:      document.getElementById('f-lastname').value.trim(),
+        email:         document.getElementById('f-email').value.trim(),
+        phone:         document.getElementById('f-phone').value.trim()   || null,
+        streetAddress: document.getElementById('f-street').value.trim()  || null,
+        city:          document.getElementById('f-city').value.trim(),
+        region:        document.getElementById('f-region').value.trim()  || null,
+        postalCode:    document.getElementById('f-postal').value.trim()  || null,
+        country:       document.getElementById('f-country').value,
+        loyaltyMember: document.getElementById('f-loyalty').checked,
+      };
+
+      try {
+        var response = await fetch('/api/place-order', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ customer: customer, cart: getCart(), shipping: SHIPPING }),
+        });
+        var result = await response.json();
+
+        if (!response.ok || result.error) {
+          throw new Error(result.error || 'Something went wrong. Please try again.');
+        }
+
+        // Success
+        saveCart([]);
+        updateNavCount();
+        document.getElementById('checkout-form-wrap').style.display = 'none';
+        document.getElementById('checkout-success').style.display   = 'block';
+        document.getElementById('success-order-id').textContent     = result.orderId;
+
+      } catch (err) {
+        errEl.textContent = err.message;
+        btn.disabled    = false;
+        btn.textContent = 'Place Order Request';
+      }
     });
 
     document.getElementById('btn-done').addEventListener('click', function() {
