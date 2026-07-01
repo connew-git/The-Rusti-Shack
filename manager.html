@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager — The Rusti Shack</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:   #1e6070;
+      --teal2:  #2a7a8c;
+      --coral:  #e07050;
+      --bg:     #e4ecee;
+      --card:   #ffffff;
+      --border: #c8d6d9;
+      --text:   #1a2628;
+      --muted:  #6b8a8f;
+      --mono:   ui-monospace, 'Cascadia Code', 'Menlo', 'Consolas', monospace;
+    }
+
+    body {
+      font-family: var(--mono);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ────────────────────────────────────────────────── */
+    .mgr-header {
+      background: var(--teal);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 2rem;
+      flex-shrink: 0;
+    }
+    .mgr-header .h-title { font-weight: bold; font-size: 0.82rem; letter-spacing: 0.07em; }
+    .mgr-header .h-url   { font-size: 0.74rem; opacity: 0.5; }
+
+    /* ── LOGIN ─────────────────────────────────────────────────── */
+    #login-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .login-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+    }
+    .login-card h2 {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 0.4rem;
+    }
+    .login-card p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.55;
+    }
+    .login-card input[type=password] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      outline: none;
+      margin-bottom: 0.7rem;
+      transition: border-color 0.2s;
+      background: #f8fafa;
+    }
+    .login-card input:focus { border-color: var(--teal2); background: #fff; }
+    .login-card button {
+      width: 100%;
+      padding: 0.7rem;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .login-card button:hover:not(:disabled)  { background: var(--teal2); }
+    .login-card button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .login-error {
+      margin-top: 0.75rem;
+      font-size: 0.74rem;
+      color: #c0392b;
+      min-height: 1rem;
+    }
+
+    /* ── DASHBOARD ─────────────────────────────────────────────── */
+    #dashboard { display: none; flex: 1; }
+    #dashboard.visible { display: block; }
+
+    .dash-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+    }
+
+    /* ── STAT CARDS ────────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+    }
+    .stat-label {
+      font-size: 0.66rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: var(--teal);
+      line-height: 1.1;
+    }
+    .stat-value.long { font-size: 1.05rem; line-height: 1.35; }
+
+    /* ── ORDERS TABLE ──────────────────────────────────────────── */
+    .table-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+    .mgr-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    .mgr-table thead { border-bottom: 2px solid var(--border); }
+    .mgr-table th {
+      padding: 0.7rem 1.1rem;
+      text-align: left;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--teal2);
+      font-weight: bold;
+    }
+    .mgr-table td {
+      padding: 0.65rem 1.1rem;
+      border-bottom: 1px solid #f0f4f5;
+      color: var(--text);
+    }
+    .mgr-table tr:last-child td { border-bottom: none; }
+    .mgr-table tbody tr:hover td { background: #f4f9fa; }
+    .td-r { text-align: right; }
+    .th-r { text-align: right; }
+    .empty-row td { text-align: center; color: var(--muted); padding: 2.5rem; font-size: 0.8rem; }
+
+    /* ── EXPORT ROW ────────────────────────────────────────────── */
+    .export-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.75rem 1.6rem;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-download:hover:not(:disabled) { background: var(--teal2); }
+    .btn-download:disabled { opacity: 0.55; cursor: not-allowed; }
+    .export-hint { font-size: 0.72rem; color: var(--muted); }
+
+    /* ── LOADING / ERROR ───────────────────────────────────────── */
+    .dash-msg {
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .dash-msg a { color: var(--teal2); }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .mgr-header { padding: 0.75rem 1rem; }
+      .mgr-header .h-url { display: none; }
+      .dash-inner { padding: 1.25rem 1rem 3rem; }
+      .mgr-table th, .mgr-table td { padding: 0.55rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mgr-header">
+    <span class="h-title">THE RUSTI SHACK &mdash; MANAGER</span>
+    <span class="h-url" id="h-url"></span>
+  </div>
+
+  <!-- ── LOGIN ── -->
+  <div id="login-wrap">
+    <div class="login-card">
+      <h2>Manager Access</h2>
+      <p>This page is private.<br/>Enter the manager password to continue.</p>
+      <form id="login-form" autocomplete="on">
+        <input type="password" id="mgr-pwd" placeholder="Password" autocomplete="current-password" />
+        <button type="submit" id="login-btn">Enter</button>
+        <div class="login-error" id="login-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── DASHBOARD ── -->
+  <div id="dashboard">
+    <div class="dash-inner" id="dash-inner">
+      <div class="dash-msg">Loading&hellip;</div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('h-url').textContent = window.location.host + window.location.pathname;
+
+    var SESSION_KEY = 'mgr_token';
+    var getToken    = function() { return sessionStorage.getItem(SESSION_KEY); };
+    var setToken    = function(t) { sessionStorage.setItem(SESSION_KEY, t); };
+    var clearToken  = function() { sessionStorage.removeItem(SESSION_KEY); };
+
+    function showLogin(msg) {
+      document.getElementById('login-wrap').style.display = 'flex';
+      document.getElementById('dashboard').classList.remove('visible');
+      document.getElementById('login-error').textContent = msg || '';
+    }
+    function showDashboard() {
+      document.getElementById('login-wrap').style.display = 'none';
+      document.getElementById('dashboard').classList.add('visible');
+    }
+
+    // ── LOGIN ──────────────────────────────────────────────────────
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var pwd = document.getElementById('mgr-pwd').value;
+      if (!pwd) return;
+
+      var btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = 'Checking…';
+      document.getElementById('login-error').textContent = '';
+
+      try {
+        var resp = await fetch('/api/manager-data', { headers: { 'Authorization': 'Bearer ' + pwd } });
+        if (resp.status === 401) throw new Error('Incorrect password.');
+        if (!resp.ok) throw new Error('Server error — try again.');
+
+        var data = await resp.json();
+        setToken(pwd);
+        renderDashboard(data);
+        showDashboard();
+
+      } catch (err) {
+        document.getElementById('login-error').textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enter';
+      }
+    });
+
+    // ── LOAD DATA ──────────────────────────────────────────────────
+    async function loadDashboard(token) {
+      try {
+        var resp = await fetch('/api/manager-data', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (resp.status === 401) { clearToken(); showLogin('Session expired — please log in again.'); return; }
+        if (!resp.ok) throw new Error('Server error.');
+        renderDashboard(await resp.json());
+        showDashboard();
+      } catch (err) {
+        document.getElementById('dash-inner').innerHTML =
+          '<div class="dash-msg">Failed to load. <a href="">Refresh</a> to try again.</div>';
+        showDashboard();
+      }
+    }
+
+    // ── RENDER ─────────────────────────────────────────────────────
+    function renderDashboard(data) {
+      var weekRevDisplay = '$' + Number(data.weekRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+      var topSellerClass = (data.topSeller || '').length > 20 ? ' long' : '';
+
+      var rows = (data.recentOrders || []).length
+        ? (data.recentOrders || []).map(function(o) {
+            return '<tr>' +
+              '<td>' + o.orderId + '</td>' +
+              '<td>' + o.date + '</td>' +
+              '<td>' + o.customer + '</td>' +
+              '<td>' + o.country + '</td>' +
+              '<td class="td-r">$' + o.total + '</td>' +
+            '</tr>';
+          }).join('')
+        : '<tr><td colspan="5" class="empty-row">No paid orders yet.</td></tr>';
+
+      document.getElementById('dash-inner').innerHTML =
+        '<div class="stats-row">' +
+          '<div class="stat-card"><div class="stat-label">Orders This Week</div>' +
+            '<div class="stat-value">' + (data.weekCount || 0) + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Revenue This Week</div>' +
+            '<div class="stat-value">' + weekRevDisplay + '</div></div>' +
+          '<div class="stat-card"><div class="stat-label">Top Seller</div>' +
+            '<div class="stat-value' + topSellerClass + '">' + (data.topSeller || '—') + '</div></div>' +
+        '</div>' +
+        '<div class="table-card"><table class="mgr-table">' +
+          '<thead><tr>' +
+            '<th>Order</th><th>Date</th><th>Customer</th><th>Country</th><th class="th-r">Total</th>' +
+          '</tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table></div>' +
+        '<div class="export-row">' +
+          '<button class="btn-download" id="btn-dl">↓ Download Sales (CSV)</button>' +
+          '<span class="export-hint">opens straight into Excel &mdash; one row per item sold</span>' +
+        '</div>';
+
+      document.getElementById('btn-dl').addEventListener('click', downloadCSV);
+    }
+
+    // ── CSV DOWNLOAD ───────────────────────────────────────────────
+    async function downloadCSV() {
+      var token = getToken();
+      if (!token) { showLogin(); return; }
+
+      var btn = document.getElementById('btn-dl');
+      btn.disabled = true;
+      btn.textContent = 'Preparing…';
+
+      try {
+        var resp = await fetch('/api/manager-export', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (resp.status === 401) { clearToken(); showLogin('Session expired.'); return; }
+        if (!resp.ok) throw new Error('Export failed.');
+
+        var blob = await resp.blob();
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href   = url;
+        a.download = 'rusti-sales-' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '↓ Download Sales (CSV)';
+      }
+    }
+
+    // ── BOOT ───────────────────────────────────────────────────────
+    var existingToken = getToken();
+    if (existingToken) { showDashboard(); loadDashboard(existingToken); }
+    else { showLogin(); }
+  </script>
+
+</body>
+</html>
