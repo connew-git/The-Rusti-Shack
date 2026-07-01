@@ -209,6 +209,44 @@
     .btn-download:disabled { opacity: 0.55; cursor: not-allowed; }
     .export-hint { font-size: 0.72rem; color: var(--muted); }
 
+    /* ── RAW TABLE EXPORTS ─────────────────────────────────────── */
+    .raw-exports {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1.5px solid var(--border);
+    }
+    .raw-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .raw-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .btn-raw {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      background: none;
+      color: var(--teal);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: bold;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-raw:hover:not(:disabled) { background: #f0f6f7; border-color: var(--teal2); }
+    .btn-raw:disabled { opacity: 0.45; cursor: not-allowed; }
+
     /* ── LOADING / ERROR ───────────────────────────────────────── */
     .dash-msg {
       padding: 3rem 2rem;
@@ -351,9 +389,21 @@
         '<div class="export-row">' +
           '<button class="btn-download" id="btn-dl">↓ Download Sales (CSV)</button>' +
           '<span class="export-hint">opens straight into Excel &mdash; one row per item sold</span>' +
+        '</div>' +
+        '<div class="raw-exports">' +
+          '<div class="raw-label">Raw table exports</div>' +
+          '<div class="raw-btns">' +
+            '<button class="btn-raw" id="btn-tbl-orders">↓ Orders</button>' +
+            '<button class="btn-raw" id="btn-tbl-orderlines">↓ Order Lines</button>' +
+            '<button class="btn-raw" id="btn-tbl-customers_core">↓ Customers</button>' +
+            '<button class="btn-raw" id="btn-tbl-customers_contact">↓ Contacts</button>' +
+          '</div>' +
         '</div>';
 
       document.getElementById('btn-dl').addEventListener('click', downloadCSV);
+      ['orders','orderlines','customers_core','customers_contact'].forEach(function(t) {
+        document.getElementById('btn-tbl-' + t).addEventListener('click', function() { downloadTable(t, this); });
+      });
     }
 
     // ── CSV DOWNLOAD ───────────────────────────────────────────────
@@ -385,6 +435,40 @@
       } finally {
         btn.disabled = false;
         btn.textContent = '↓ Download Sales (CSV)';
+      }
+    }
+
+    // ── RAW TABLE DOWNLOAD ─────────────────────────────────────────
+    async function downloadTable(tableName, btn) {
+      var token = getToken();
+      if (!token) { showLogin(); return; }
+
+      var orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '…';
+
+      try {
+        var resp = await fetch('/api/manager-export?table=' + tableName, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (resp.status === 401) { clearToken(); showLogin('Session expired.'); return; }
+        if (!resp.ok) throw new Error('Export failed.');
+
+        var blob = await resp.blob();
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href   = url;
+        a.download = 'rusti-' + tableName.replace('_', '-') + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
       }
     }
 
