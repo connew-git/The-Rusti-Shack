@@ -36,6 +36,29 @@ module.exports = async function handler(req, res) {
   const email = customer.email.toLowerCase().trim();
 
   try {
+    // ── 0. Re-price cart from Supabase — never trust client-supplied prices ──
+    const skus = [...new Set(cart.map(function(item) { return item.sku; }))];
+    const [{ data: prodRows, error: prodErr }, { data: varRows, error: varErr }] = await Promise.all([
+      db.from('products').select('sku, unit_price').in('sku', skus),
+      db.from('product_variants').select('sku, unit_price').in('sku', skus),
+    ]);
+    if (prodErr) throw prodErr;
+    if (varErr) throw varErr;
+
+    const priceBySku = {};
+    (prodRows || []).forEach(function(p) { priceBySku[p.sku] = Number(p.unit_price); });
+    (varRows  || []).forEach(function(v) { priceBySku[v.sku] = Number(v.unit_price); });
+
+    for (const item of cart) {
+      if (!(item.sku in priceBySku)) {
+        return res.status(400).json({ error: 'Unknown product: ' + item.sku });
+      }
+      if (!Number.isInteger(item.qty) || item.qty <= 0) {
+        return res.status(400).json({ error: 'Invalid quantity for ' + item.sku });
+      }
+      item.price = priceBySku[item.sku];
+    }
+
     // ── 1. Customer lookup / create ───────────────────────────────────
     let customerId;
 
