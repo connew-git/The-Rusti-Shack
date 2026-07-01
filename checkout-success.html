@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed — The Rusti Shack</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:  #f5e9d3;
+      --ocean: #2a7a8c;
+      --coral: #e07050;
+      --drift: #8b6f50;
+      --white: #ffffff;
+      --dark:  #2c2c2c;
+    }
+
+    body { font-family: 'Lato', sans-serif; background: var(--sand); color: var(--dark); }
+
+    /* ── NAV ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem; background: var(--ocean);
+      position: sticky; top: 0; z-index: 100;
+    }
+    nav .logo {
+      font-family: 'Pacifico', cursive; font-size: 1.5rem;
+      color: var(--white); text-decoration: none;
+    }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a {
+      color: var(--white); text-decoration: none; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;
+      opacity: 0.85; transition: opacity 0.2s;
+    }
+    nav ul a:hover { opacity: 1; }
+    .cart-btn {
+      background: none; border: 2px solid rgba(255,255,255,0.5);
+      color: var(--white); border-radius: 50px; text-decoration: none;
+      padding: 0.35rem 0.9rem; font-family: 'Lato', sans-serif;
+      font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .cart-btn:hover { border-color: white; background: rgba(255,255,255,0.1); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background: var(--ocean); color: var(--white);
+      text-align: center; padding: 3rem 2rem 2.5rem;
+    }
+    .page-header h1 {
+      font-family: 'Pacifico', cursive;
+      font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.4rem;
+    }
+    .page-header p { font-size: 1rem; font-weight: 300; opacity: 0.88; }
+
+    /* ── MAIN ── */
+    .success-page {
+      max-width: 640px; margin: 0 auto;
+      padding: 4rem 2rem 6rem; text-align: center;
+    }
+
+    /* ── LOADING ── */
+    .state-loading { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .spinner {
+      width: 48px; height: 48px; border: 4px solid rgba(42,122,140,0.2);
+      border-top-color: var(--ocean); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-loading p { color: #888; font-weight: 300; }
+
+    /* ── SUCCESS ── */
+    .state-success { display: none; flex-direction: column; align-items: center; gap: 1.2rem; }
+    .success-icon-lg { font-size: 5rem; }
+    .state-success h2 {
+      font-family: 'Pacifico', cursive; font-size: clamp(1.8rem, 4vw, 2.6rem);
+      color: var(--ocean);
+    }
+    .state-success .desc {
+      font-size: 1rem; font-weight: 300; color: #555; line-height: 1.75;
+      max-width: 480px;
+    }
+    .order-ref-box {
+      background: var(--white); border-radius: 12px;
+      padding: 1rem 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+      font-size: 0.85rem; color: #888;
+    }
+    .order-ref-box strong { display: block; font-size: 1rem; color: var(--dark); margin-top: 0.25rem; }
+    .success-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 0.5rem; }
+    .btn-primary {
+      padding: 0.8rem 2rem; background: var(--coral); color: var(--white);
+      text-decoration: none; border-radius: 50px; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #c85f40; }
+    .btn-secondary {
+      padding: 0.8rem 2rem; border: 2px solid var(--ocean); color: var(--ocean);
+      text-decoration: none; border-radius: 50px; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: var(--ocean); color: var(--white); }
+
+    /* ── ERROR ── */
+    .state-error { display: none; flex-direction: column; align-items: center; gap: 1rem; }
+    .state-error .err-icon { font-size: 3.5rem; }
+    .state-error h2 {
+      font-family: 'Pacifico', cursive; font-size: 1.8rem; color: var(--drift);
+    }
+    .state-error p { color: #666; font-size: 0.97rem; line-height: 1.7; }
+    .state-error a { color: var(--ocean); font-weight: 700; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark); color: rgba(255,255,255,0.55);
+      text-align: center; padding: 2rem; font-size: 0.85rem;
+    }
+    footer span { color: var(--coral); }
+
+    @media (max-width: 600px) {
+      nav { padding: 0.8rem 1.2rem; }
+      .success-actions { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="logo">The Rusti Shack</a>
+    <ul>
+      <li><a href="gear.html">Gear</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="find-us.html">Find Us</a></li>
+    </ul>
+    <a href="cart.html" class="cart-btn" id="cart-btn">🛒 Cart</a>
+  </nav>
+
+  <div class="page-header">
+    <h1>Order Confirmed</h1>
+    <p>Payment received. You're all set.</p>
+  </div>
+
+  <main class="success-page">
+
+    <div class="state-loading" id="state-loading">
+      <div class="spinner"></div>
+      <p>Confirming your order…</p>
+    </div>
+
+    <div class="state-success" id="state-success">
+      <div class="success-icon-lg">🌊</div>
+      <h2>You're all set!</h2>
+      <p class="desc">
+        Payment confirmed. We'll pack your order and send a confirmation to
+        <strong id="success-email"></strong>.
+        See you at the shack!
+      </p>
+      <div class="order-ref-box">
+        Order reference<strong id="success-order-id"></strong>
+      </div>
+      <div class="success-actions">
+        <a href="gear.html" class="btn-primary">Keep Browsing Gear</a>
+        <a href="index.html" class="btn-secondary">Back to Home</a>
+      </div>
+    </div>
+
+    <div class="state-error" id="state-error">
+      <div class="err-icon">⚠️</div>
+      <h2>Something went wrong</h2>
+      <p id="err-msg">We couldn't confirm your order automatically.</p>
+      <p>
+        Don't worry — if payment went through, we have your order.
+        Email us at <a href="mailto:hello@rustishack.com">hello@rustishack.com</a>
+        and we'll sort it out straight away.
+      </p>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2026 The Rusti Shack &nbsp;·&nbsp; Apo Island, Philippines &nbsp;·&nbsp; Made with <span>♥</span> by the sea</p>
+  </footer>
+
+  <script>
+    var params    = new URLSearchParams(window.location.search);
+    var sessionId = params.get('session_id');
+
+    function show(stateId) {
+      ['state-loading', 'state-success', 'state-error'].forEach(function(id) {
+        var el = document.getElementById(id);
+        el.style.display = id === stateId ? 'flex' : 'none';
+      });
+    }
+
+    if (!sessionId) {
+      window.location.href = 'index.html';
+    } else {
+      fetch('/api/confirm-order?session_id=' + encodeURIComponent(sessionId))
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+          if (result.error) throw new Error(result.error);
+
+          // Payment confirmed — clear the cart
+          localStorage.removeItem('rustiCart');
+
+          document.getElementById('success-email').textContent    = result.email   || '';
+          document.getElementById('success-order-id').textContent = result.orderId || '';
+          show('state-success');
+        })
+        .catch(function(err) {
+          document.getElementById('err-msg').textContent =
+            err.message || 'We couldn\'t confirm your order automatically.';
+          show('state-error');
+        });
+    }
+  </script>
+
+</body>
+</html>

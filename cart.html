@@ -332,7 +332,7 @@
       <!-- Right: customer form -->
       <div class="checkout-form-panel" id="checkout-form-wrap">
         <div class="cf-heading">Contact &amp; Shipping</div>
-        <p class="cf-sub">We'll confirm your order by email and arrange payment.</p>
+        <p class="cf-sub">Fill in your details and you'll be taken to Stripe's secure payment page.</p>
 
         <form id="checkout-form" novalidate>
           <div class="form-grid">
@@ -446,7 +446,7 @@
             </span>
           </label>
 
-          <button type="submit" class="btn-submit" id="checkout-submit-btn">Place Order Request</button>
+          <button type="submit" class="btn-submit" id="checkout-submit-btn">Proceed to Payment</button>
           <div class="api-error" id="api-error"></div>
         </form>
       </div><!-- /checkout-form-wrap -->
@@ -606,7 +606,7 @@
       document.getElementById('checkout-success').style.display    = 'none';
       document.getElementById('api-error').textContent             = '';
       document.getElementById('checkout-submit-btn').disabled      = false;
-      document.getElementById('checkout-submit-btn').textContent   = 'Place Order Request';
+      document.getElementById('checkout-submit-btn').textContent   = 'Proceed to Payment';
       document.getElementById('checkout-overlay').classList.add('open');
       document.body.style.overflow = 'hidden';
     }
@@ -669,7 +669,7 @@
       var btn = document.getElementById('checkout-submit-btn');
       var errEl = document.getElementById('api-error');
       btn.disabled = true;
-      btn.textContent = 'Placing order…';
+      btn.textContent = 'Redirecting to payment…';
       errEl.textContent = '';
 
       var customer = {
@@ -697,17 +697,13 @@
           throw new Error(result.error || 'Something went wrong. Please try again.');
         }
 
-        // Success
-        saveCart([]);
-        updateNavCount();
-        document.getElementById('checkout-form-wrap').style.display = 'none';
-        document.getElementById('checkout-success').style.display   = 'block';
-        document.getElementById('success-order-id').textContent     = result.orderId;
+        // Cart stays until Stripe confirms — redirect to hosted payment page
+        window.location.href = result.sessionUrl;
 
       } catch (err) {
         errEl.textContent = err.message;
         btn.disabled    = false;
-        btn.textContent = 'Place Order Request';
+        btn.textContent = 'Proceed to Payment';
       }
     });
 

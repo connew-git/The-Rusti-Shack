@@ -1,8 +1,9 @@
 // Vercel serverless function — runs server-side with the secret key.
-// The browser never sees SUPABASE_SERVICE_ROLE_KEY.
-// Set it in Vercel Dashboard → Settings → Environment Variables.
+// The browser never sees SUPABASE_SERVICE_ROLE_KEY or STRIPE_SECRET_KEY.
+// Set both in Vercel Dashboard → Settings → Environment Variables.
 
 const { createClient } = require('@supabase/supabase-js');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const SUPABASE_URL = 'https://igfgyuuucaezuqtdvykl.supabase.co';
 // Web-reserved CustomerID range: C50001–C99999
@@ -17,13 +18,14 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) return res.status(500).json({ error: 'Server misconfiguration — secret key missing' });
+  if (!serviceKey) return res.status(500).json({ error: 'Server misconfiguration — Supabase key missing' });
+  if (!process.env.STRIPE_SECRET_KEY) return res.status(500).json({ error: 'Server misconfiguration — Stripe key missing' });
 
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const { customer, cart, shipping } = req.body || {};
 
-  // ── Basic validation ──────────────────────────────────────────
+  // ── Basic validation ──────────────────────────────────────────────────
   if (!customer?.firstName || !customer?.lastName || !customer?.email || !customer?.country) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -34,13 +36,13 @@ module.exports = async function handler(req, res) {
   const email = customer.email.toLowerCase().trim();
 
   try {
-    // ── 1. Customer lookup / create ───────────────────────────────
+    // ── 1. Customer lookup / create ───────────────────────────────────
     let customerId;
 
     const { data: existingContact } = await db
       .from('Customers_Contact')
-      .select('"CustomerID"')
-      .eq('"Email"', email)
+      .select('CustomerID')
+      .eq('Email', email)
       .maybeSingle();
 
     if (existingContact) {
@@ -49,9 +51,9 @@ module.exports = async function handler(req, res) {
       // Next ID in web range
       const { data: maxRow } = await db
         .from('Customers_Core')
-        .select('"CustomerID"')
-        .gte('"CustomerID"', 'C' + WEB_CUST_MIN)
-        .order('"CustomerID"', { ascending: false })
+        .select('CustomerID')
+        .gte('CustomerID', 'C' + WEB_CUST_MIN)
+        .order('CustomerID', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -85,7 +87,7 @@ module.exports = async function handler(req, res) {
       if (contactErr) throw contactErr;
     }
 
-    // ── 2. Create order ───────────────────────────────────────────
+    // ── 2. Create order (Stripe-Pending until payment confirmed) ─────
     const orderId  = 'ORD-W-' + Date.now();
     const shipFee  = typeof shipping === 'number' ? shipping : 12;
     const subtotal = cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
@@ -99,11 +101,11 @@ module.exports = async function handler(req, res) {
       Channel:        'Shipping',
       ShippingFee:    shipFee,
       OrderTotal:     parseFloat((subtotal + shipFee).toFixed(2)),
-      PaymentMethod:  'Card',
+      PaymentMethod:  'Stripe-Pending',
     });
     if (orderErr) throw orderErr;
 
-    // ── 3. Order lines ────────────────────────────────────────────
+    // ── 3. Order lines ────────────────────────────────────────────────
     const lines = cart.map(function(item, i) {
       return {
         OrderID:                 orderId,
@@ -121,7 +123,43 @@ module.exports = async function handler(req, res) {
     const { error: linesErr } = await db.from('OrderLines').insert(lines);
     if (linesErr) throw linesErr;
 
-    return res.status(200).json({ success: true, orderId: orderId, customerId: customerId });
+    // ── 4. Create Stripe Checkout Session ─────────────────────────────
+    const proto   = req.headers['x-forwarded-proto'] || 'https';
+    const host    = req.headers['x-forwarded-host'] || req.headers.host || 'the-rusti-shack-woad.vercel.app';
+    const baseUrl = proto + '://' + host;
+
+    const stripeLineItems = cart.map(function(item) {
+      return {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: item.variantLabel ? item.name + ' — ' + item.variantLabel : item.name,
+          },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.qty,
+      };
+    });
+
+    stripeLineItems.push({
+      price_data: {
+        currency: 'usd',
+        product_data: { name: 'Shipping' },
+        unit_amount: Math.round(shipFee * 100),
+      },
+      quantity: 1,
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      mode:           'payment',
+      customer_email: email,
+      metadata:       { orderId: orderId, customerId: String(customerId) },
+      line_items:     stripeLineItems,
+      success_url:    baseUrl + '/checkout-success.html?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url:     baseUrl + '/cart.html',
+    });
+
+    return res.status(200).json({ sessionUrl: session.url });
 
   } catch (err) {
     console.error('place-order error:', err);
