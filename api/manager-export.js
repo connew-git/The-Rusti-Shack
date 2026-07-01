@@ -8,6 +8,9 @@ const SUPABASE_URL = 'https://igfgyuuucaezuqtdvykl.supabase.co';
 
 function csvCell(val) {
   var s = (val === null || val === undefined) ? '' : String(val);
+  // Neutralize formula injection — a customer-supplied name/address starting with
+  // =, +, -, or @ would otherwise be evaluated as a formula when opened in Excel.
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
   if (s.includes(',') || s.includes('"') || s.includes('\n')) {
     return '"' + s.replace(/"/g, '""') + '"';
   }
