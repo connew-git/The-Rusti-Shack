@@ -36,6 +36,11 @@
       opacity: 0.85; transition: opacity 0.2s;
     }
     nav ul a:hover { opacity: 1; }
+    @media (max-width: 640px) {
+      nav { flex-wrap: wrap; justify-content: center; gap: 0.75rem; padding: 1rem 1.25rem; }
+      nav .logo { flex: 0 0 100%; text-align: center; }
+      nav ul { flex-wrap: wrap; justify-content: center; gap: 1.1rem; }
+    }
     .cart-btn {
       background: none; border: 2px solid rgba(255,255,255,0.5);
       color: var(--white); border-radius: 50px; text-decoration: none;
