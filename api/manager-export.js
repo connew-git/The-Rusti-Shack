@@ -62,10 +62,10 @@ module.exports = async function handler(req, res) {
     if (table === 'orderlines') {
       const { data, error } = await db
         .from('OrderLines')
-        .select('OrderID, LineNumber, ProductCode, Quantity, UnitPrice, DiscountPct, LineRevenue, LineCost, EffectiveDiscountAmount');
+        .select('OrderID, LineNumber, ProductCode, Quantity, UnitPrice, DiscountPct, LineRevenue, LineCost, EffectiveDiscountAmount, RentalStartDate, RentalEndDate');
       if (error) throw error;
 
-      var headers = ['OrderID','LineNumber','ProductCode','Quantity','UnitPrice','DiscountPct','LineRevenue','LineCost','EffectiveDiscountAmount'];
+      var headers = ['OrderID','LineNumber','ProductCode','Quantity','UnitPrice','DiscountPct','LineRevenue','LineCost','EffectiveDiscountAmount','RentalStartDate','RentalEndDate'];
       var rows = [headers.join(',')];
       (data || []).forEach(function(r) {
         rows.push(headers.map(function(h) { return csvCell(r[h]); }).join(','));
