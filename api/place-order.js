@@ -187,6 +187,38 @@ module.exports = async function handler(req, res) {
     const { error: linesErr } = await db.from('OrderLines').insert(lines);
     if (linesErr) throw linesErr;
 
+    // ── 3b. Rental transactions ────────────────────────────────────────
+    // Every rental line also gets a RentalTransactions row so it shows up
+    // in the same rental reporting as historical walk-in rentals — the
+    // OrderLines row above stays too, so revenue/Stripe reconciliation is
+    // unaffected. Returned is left null: unlike historical same-day
+    // rentals, this hasn't happened yet at booking time.
+    const rentalRows = cart
+      .filter(function(item) { return item.kind === 'rent'; })
+      .map(function(item, i) {
+        return {
+          RentalID:       'RNT-W-' + Date.now() + '-' + i,
+          RentalDate:     item.startDate,
+          ReturnDate:     item.endDate,
+          DaysBilled:     item.days,
+          CustID:         customerId,
+          LocationID:     'SHIP-INTL',
+          SalesAssociate: 'WEB',
+          SKU:            item.sku,
+          Quantity:       item.qty,
+          DailyRate:      item.dailyRate,
+          RentalRevenue:  parseFloat((item.price * item.qty).toFixed(2)),
+          Returned:       null,
+          Channel:        'Shipping',
+          OrderID:        orderId,
+        };
+      });
+
+    if (rentalRows.length > 0) {
+      const { error: rentalErr } = await db.from('RentalTransactions').insert(rentalRows);
+      if (rentalErr) throw rentalErr;
+    }
+
     // ── 4. Create Stripe Checkout Session ─────────────────────────────
     const proto   = req.headers['x-forwarded-proto'] || 'https';
     const host    = req.headers['x-forwarded-host'] || req.headers.host || 'the-rusti-shack-woad.vercel.app';
