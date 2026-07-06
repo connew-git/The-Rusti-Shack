@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Management — The Rusti Shack</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/forecast.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -310,6 +311,39 @@
     .chart-canvas-box { position: relative; height: 300px; }
     .chart-canvas-box.short { height: 240px; }
 
+    /* ── FORECAST CONTROLS ─────────────────────────────────────── */
+    .fc-controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fc-models { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .fc-model-btn {
+      padding: 0.35rem 0.8rem; border: 1.5px solid var(--border); background: var(--card);
+      color: var(--teal); border-radius: 6px; font-family: var(--mono);
+      font-size: 0.72rem; font-weight: bold; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .fc-model-btn:hover { border-color: var(--teal2); }
+    .fc-model-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .fc-horizon { display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; color: var(--muted); }
+    .fc-horizon input[type=range] { accent-color: var(--teal); cursor: pointer; }
+    .fc-horizon .fc-h-val { font-weight: bold; color: var(--text); min-width: 4.5rem; }
+    .fc-info-btn {
+      width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--teal2);
+      background: var(--card); color: var(--teal2); font-family: var(--mono); font-weight: bold;
+      font-size: 0.78rem; cursor: pointer; line-height: 1; flex-shrink: 0;
+    }
+    .fc-info-btn:hover { background: var(--teal2); color: #fff; }
+    .fc-info-panel {
+      display: none; background: #f4f9fa; border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 0.9rem 1.1rem; margin-bottom: 1rem;
+      font-size: 0.78rem; line-height: 1.6; color: var(--text);
+    }
+    .fc-info-panel.open { display: block; }
+    .fc-info-panel strong { color: var(--teal); }
+    .fc-info-panel .fc-info-label {
+      font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); display: block; margin-top: 0.5rem;
+    }
+    .fc-caveat { font-size: 0.68rem; color: var(--muted); margin-top: 0.75rem; font-style: italic; }
+
     /* ── RESPONSIVE ────────────────────────────────────────────── */
     @media (max-width: 800px) {
       .chart-grid { grid-template-columns: 1fr; }
@@ -359,6 +393,28 @@
           <span class="slicer-label">Year</span>
           <!-- year buttons injected here -->
         </div>
+        <!-- Revenue forecast (Step 6) -->
+        <div class="chart-card wide" id="forecast-card" style="margin-bottom:1.25rem">
+          <div class="chart-title" id="fc-title"></div>
+          <div class="chart-sub" id="fc-sub"></div>
+          <div class="fc-controls">
+            <div class="fc-models" id="fc-models">
+              <button class="fc-model-btn active" data-model="holtWinters">Holt-Winters</button>
+              <button class="fc-model-btn" data-model="linearSeasonal">Linear + Seasonal</button>
+              <button class="fc-model-btn" data-model="sarimaLite">SARIMA-lite</button>
+            </div>
+            <div class="fc-horizon">
+              <label for="fc-horizon-range">Horizon</label>
+              <input type="range" id="fc-horizon-range" min="3" max="24" step="1" value="12" />
+              <span class="fc-h-val" id="fc-horizon-val">12 months</span>
+            </div>
+            <button class="fc-info-btn" id="fc-info-btn" title="How this model works" aria-label="Model info">i</button>
+          </div>
+          <div class="fc-info-panel" id="fc-info-panel"></div>
+          <div class="chart-canvas-box"><canvas id="ch-forecast"></canvas></div>
+          <div class="fc-caveat" id="fc-caveat"></div>
+        </div>
+
         <div class="chart-grid" id="chart-grid">
           <!-- chart cards injected here -->
         </div>
@@ -598,6 +654,8 @@
         buildYearSlicer();
         buildChartCards();
         renderAnalytics();
+        initForecast();
+        renderForecast();
       } catch (err) {
         box.style.display = 'none';
       }
@@ -842,6 +900,154 @@
           var r = shown[ctx.dataIndex];
           return ' ' + fmtUSD2(r.lost_value_at_cost) + ' · ' + r.lost_units + ' units lost';
         }), { indexAxis: 'y' }),
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  REVENUE FORECAST (Step 6) — three hand-written models in forecast.js
+    // ═══════════════════════════════════════════════════════════════
+    var _fcModel = 'holtWinters';
+    var _fcHorizon = 12;
+
+    var FC_NAMES = {
+      holtWinters:    'Holt-Winters',
+      linearSeasonal: 'Linear + Seasonal',
+      sarimaLite:     'SARIMA-lite',
+    };
+
+    // Info-button text — the plain-language methodology, matching what was
+    // walked through when the models were chosen.
+    var FC_INFO = {
+      holtWinters:
+        '<strong>Holt-Winters (triple exponential smoothing)</strong> keeps a running estimate of three things — the overall level, the trend, and a repeating 12-month seasonal shape — updating each every month with more weight on recent data. It forecasts by taking today\'s level, adding the trend, and stamping on each month\'s seasonal bump.' +
+        '<span class="fc-info-label">Assumes</span> the seasonal pattern is stable year to year and recent behaviour is the best guide to next month.' +
+        '<span class="fc-info-label">Trust it when</span> you have 2+ years of steady seasonality. Distrust it right after a structural change (new location, viral moment), since it leans on the recent past repeating.',
+      linearSeasonal:
+        '<strong>Linear regression + seasonal dummies</strong> fits one straight trend line through all the history, plus a fixed learned offset for each calendar month (e.g. December always +$X, September always −$Y). The most transparent model: you can read the underlying growth per month straight off it.' +
+        '<span class="fc-info-label">Assumes</span> the trend is a constant straight line and each month\'s offset repeats every year.' +
+        '<span class="fc-info-label">Trust it when</span> you want an explainable baseline and growth looks roughly linear. Distrust it when growth is accelerating or flattening — a straight line can\'t bend, so it will over- or under-shoot.',
+      sarimaLite:
+        '<strong>SARIMA-lite — ARIMA(1,0,0)(0,1,0)<sub>12</sub></strong> models next month from the same month a year ago plus recent momentum. It subtracts each month from its value 12 months earlier (cancelling seasonality), fits how much this month\'s surprise carries into next month\'s, then adds seasonality back.' +
+        '<span class="fc-info-label">Assumes</span> year-over-year differences are stable and momentum in them is informative.' +
+        '<span class="fc-info-label">Trust it when</span> there\'s real month-to-month persistence and 2+ years of history. Distrust it on short or very noisy series. This is a fixed, documented order — not an auto-ARIMA order search — so its behaviour is fully explainable.',
+    };
+
+    var _fcInited = false;
+    function initForecast() {
+      if (_fcInited) return; // controls are static — wire once
+      _fcInited = true;
+      document.querySelectorAll('#fc-models .fc-model-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          _fcModel = btn.dataset.model;
+          document.querySelectorAll('#fc-models .fc-model-btn').forEach(function(b){ b.classList.remove('active'); });
+          btn.classList.add('active');
+          if (document.getElementById('fc-info-panel').classList.contains('open')) {
+            document.getElementById('fc-info-panel').innerHTML = FC_INFO[_fcModel];
+          }
+          renderForecast();
+        });
+      });
+      var range = document.getElementById('fc-horizon-range');
+      range.addEventListener('input', function() {
+        _fcHorizon = parseInt(range.value, 10);
+        document.getElementById('fc-horizon-val').textContent = _fcHorizon + ' months';
+        renderForecast();
+      });
+      document.getElementById('fc-info-btn').addEventListener('click', function() {
+        var panel = document.getElementById('fc-info-panel');
+        panel.classList.toggle('open');
+        panel.innerHTML = FC_INFO[_fcModel];
+      });
+    }
+
+    // Drop trailing partial/near-zero months (e.g. the current month or a
+    // handful of live test orders) so they don't distort the fit.
+    function trimPartialTail(vals) {
+      var positives = vals.filter(function(v){ return v > 0; }).slice().sort(function(a,b){ return a-b; });
+      var median = positives.length ? positives[Math.floor(positives.length/2)] : 0;
+      var out = vals.slice(), trimmed = 0;
+      while (out.length > 24 && out[out.length-1] < 0.25 * median && trimmed < 3) { out.pop(); trimmed++; }
+      return { vals: out, trimmed: trimmed };
+    }
+
+    function renderForecast() {
+      var all = (_analytics.monthly || []).slice(); // ascending, ignores year slicer by design
+      if (all.length < 2 * 12) {
+        setTitle('fc', 'Not enough history to forecast yet', 'Revenue forecast · needs 2+ years of monthly data');
+        return;
+      }
+
+      var rawVals = all.map(function(m){ return Number(m.total_revenue); });
+      var trim = trimPartialTail(rawVals);
+      var vals = trim.vals;
+      var kept = all.slice(0, vals.length);
+      var startMonthIdx = (kept[0].month_num - 1);
+
+      var res;
+      if (_fcModel === 'holtWinters')      res = Forecast.holtWinters(vals, _fcHorizon);
+      else if (_fcModel === 'linearSeasonal') res = Forecast.linearSeasonal(vals, _fcHorizon, startMonthIdx);
+      else                                  res = Forecast.sarimaLite(vals, _fcHorizon);
+
+      if (!res) { setTitle('fc', 'Not enough history for this model', 'Revenue forecast'); return; }
+
+      // Labels: kept history + forecast months projected forward.
+      var histLabels = kept.map(function(m){ return MONTH_NAMES[m.month_num-1] + " '" + String(m.year).slice(2); });
+      var lastY = kept[kept.length-1].year, lastM = kept[kept.length-1].month_num; // 1-12
+      var fcLabels = [];
+      for (var k = 1; k <= _fcHorizon; k++) {
+        var mm = (lastM - 1 + k) % 12, yy = lastY + Math.floor((lastM - 1 + k) / 12);
+        fcLabels.push(MONTH_NAMES[mm] + " '" + String(yy).slice(2));
+      }
+
+      var nHist = vals.length;
+      var lastActual = vals[nHist-1];
+      var pad = new Array(nHist-1).fill(null);
+      var histData  = vals.concat(new Array(_fcHorizon).fill(null));
+      var fcData    = pad.concat([lastActual], res.forecast);
+      var upperData = pad.concat([lastActual], res.upper);
+      var lowerData = pad.concat([lastActual], res.lower);
+
+      // Takeaway title
+      var sumFc = res.forecast.reduce(function(s,x){ return s+x; }, 0);
+      var priorN = vals.slice(-_fcHorizon).reduce(function(s,x){ return s+x; }, 0);
+      var pct = priorN > 0 ? Math.round(100 * (sumFc - priorN) / priorN) : 0;
+      var endBand = Math.round(res.upper[_fcHorizon-1] - res.forecast[_fcHorizon-1]);
+      setTitle('fc',
+        FC_NAMES[_fcModel] + ' projects ' + fmtUSD(sumFc) + ' over the next ' + _fcHorizon + ' months' +
+          (priorN > 0 ? ' — ' + (pct >= 0 ? 'up ' : 'down ') + Math.abs(pct) + '% vs the prior ' + _fcHorizon : ''),
+        'Revenue forecast · shaded band widens with uncertainty');
+
+      var caveat = 'Forecast uses the full monthly history and ignores the year slicer above.';
+      if (trim.trimmed > 0) caveat = 'Dropped ' + trim.trimmed + ' trailing partial/low month(s) (current-month or test data) from the fit. ' + caveat;
+      document.getElementById('fc-caveat').textContent = caveat;
+
+      drawChart('ch-forecast', {
+        type: 'line',
+        data: { labels: histLabels.concat(fcLabels), datasets: [
+          { label: '80% band', data: upperData, borderColor: 'transparent', backgroundColor: 'rgba(224,112,80,0.15)',
+            pointRadius: 0, fill: '+1', tension: 0.2 },
+          { label: '', data: lowerData, borderColor: 'transparent', backgroundColor: 'transparent',
+            pointRadius: 0, fill: false, tension: 0.2 },
+          { label: 'Actual', data: histData, borderColor: COLORS.teal, backgroundColor: 'transparent',
+            pointRadius: 0, borderWidth: 2, tension: 0.2 },
+          { label: 'Forecast', data: fcData, borderColor: COLORS.coral, backgroundColor: 'transparent',
+            pointRadius: 0, borderWidth: 2, borderDash: [6,4], tension: 0.2 },
+        ]},
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { font: { family: 'monospace', size: 11 },
+              filter: function(item){ return item.text && item.text !== '80% band'; } } },
+            tooltip: { callbacks: { label: function(ctx){
+              if (ctx.parsed.y == null) return null;
+              return ' ' + ctx.dataset.label + ': ' + fmtUSD(ctx.parsed.y);
+            } } },
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'monospace', size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+            y: { grid: { color: COLORS.grid }, ticks: { font: { family: 'monospace', size: 10 }, callback: function(v){ return fmtUSD(v); } } },
+          },
+        },
       });
     }
 
