@@ -333,7 +333,7 @@
         <div id="csp-items"></div>
         <hr class="csp-divider" />
         <div class="csp-row"><span>Subtotal</span><span id="csp-subtotal"></span></div>
-        <div class="csp-row"><span>Shipping</span><span>$12.00</span></div>
+        <div class="csp-row"><span>Shipping</span><span id="csp-shipping"></span></div>
         <hr class="csp-divider" />
         <div class="csp-row total"><span>Total</span><span id="csp-total"></span></div>
       </div>
@@ -489,6 +489,13 @@
       return cart.reduce(function(s, i) { return s + i.qty; }, 0);
     }
 
+    // Shipping only applies when something is actually being shipped —
+    // a rental is picked up and returned on Apo Island in person.
+    function effectiveShipping(cart) {
+      var hasShippable = cart.some(function(i) { return (i.kind || 'buy') === 'buy'; });
+      return hasShippable ? SHIPPING : 0;
+    }
+
     function updateNavCount() {
       var cart  = getCart();
       var total = totalQty(cart);
@@ -555,15 +562,19 @@
       }).join('');
 
       var sub   = cartSubtotal(cart);
-      var total = sub + SHIPPING;
+      var ship  = effectiveShipping(cart);
+      var total = sub + ship;
+      var shipNote = ship > 0
+        ? 'Flat-rate shipping. Confirmed at checkout.'
+        : 'No shipping — rentals are picked up and returned on Apo Island.';
 
       var summaryHtml =
         '<div class="order-summary">' +
           '<div class="summary-row"><span class="label">Subtotal</span><span class="value">$' + sub.toFixed(2) + '</span></div>' +
-          '<div class="summary-row"><span class="label">Shipping</span><span class="value">$' + SHIPPING.toFixed(2) + '</span></div>' +
+          '<div class="summary-row"><span class="label">Shipping</span><span class="value">$' + ship.toFixed(2) + '</span></div>' +
           '<hr class="summary-divider" />' +
           '<div class="summary-row summary-total"><span class="label">Total</span><span class="value">$' + total.toFixed(2) + '</span></div>' +
-          '<p class="summary-note">Flat-rate shipping. Confirmed at checkout.</p>' +
+          '<p class="summary-note">' + shipNote + '</p>' +
         '</div>' +
         '<div class="cart-actions">' +
           '<a href="gear.html" class="btn-keep-shopping">Keep Shopping</a>' +
@@ -615,9 +626,12 @@
         '</div>';
       }).join('');
 
-      document.getElementById('csp-items').innerHTML     = itemsHtml;
+      var ship = effectiveShipping(cart);
+
+      document.getElementById('csp-items').innerHTML      = itemsHtml;
       document.getElementById('csp-subtotal').textContent = '$' + sub.toFixed(2);
-      document.getElementById('csp-total').textContent    = '$' + (sub + SHIPPING).toFixed(2);
+      document.getElementById('csp-shipping').textContent = '$' + ship.toFixed(2);
+      document.getElementById('csp-total').textContent    = '$' + (sub + ship).toFixed(2);
     }
 
     function openCheckout() {
@@ -709,7 +723,7 @@
         var response = await fetch('/api/place-order', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ customer: customer, cart: getCart(), shipping: SHIPPING }),
+          body:    JSON.stringify({ customer: customer, cart: getCart(), shipping: effectiveShipping(getCart()) }),
         });
         var result = await response.json();
 

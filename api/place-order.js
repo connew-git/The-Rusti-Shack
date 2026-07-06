@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
 
   const db = createClient(SUPABASE_URL, serviceKey);
 
-  const { customer, cart, shipping } = req.body || {};
+  const { customer, cart } = req.body || {};
 
   // ── Basic validation ──────────────────────────────────────────────────
   if (!customer?.firstName || !customer?.lastName || !customer?.email || !customer?.country) {
@@ -144,9 +144,13 @@ module.exports = async function handler(req, res) {
     }
 
     // ── 2. Create order (Stripe-Pending until payment confirmed) ─────
-    const orderId  = 'ORD-W-' + Date.now();
-    const shipFee  = typeof shipping === 'number' ? shipping : 12;
-    const subtotal = cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
+    // Shipping is never trusted from the client — same principle as item
+    // prices. It only applies when something is actually being shipped;
+    // a rental is picked up and returned on Apo Island in person.
+    const orderId       = 'ORD-W-' + Date.now();
+    const hasShippable  = cart.some(function(i) { return i.kind === 'buy'; });
+    const shipFee       = hasShippable ? 12 : 0;
+    const subtotal      = cart.reduce(function(s, i) { return s + i.price * i.qty; }, 0);
 
     const { error: orderErr } = await db.from('Orders').insert({
       OrderID:        orderId,
