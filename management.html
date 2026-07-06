@@ -463,6 +463,16 @@
             <table class="reorder-table" id="ro-table"></table>
           </div>
         </div>
+
+        <!-- Back-office exports (Step 8) -->
+        <div class="raw-exports" style="margin-top:1.75rem">
+          <div class="raw-label">Export back-office data (CSV)</div>
+          <div class="raw-btns">
+            <button class="btn-raw" id="exp-historicals">↓ Monthly historicals</button>
+            <button class="btn-raw" id="exp-forecast">↓ Forecast (current model)</button>
+            <button class="btn-raw" id="exp-reorder">↓ Reorder report</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -703,6 +713,7 @@
         renderForecast();
         initReorder();
         renderReorder();
+        initExports();
       } catch (err) {
         box.style.display = 'none';
       }
@@ -1187,6 +1198,83 @@
         '</tr>';
       }).join('');
       document.getElementById('ro-table').innerHTML = head + '<tbody>' + body + '</tbody>';
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  BACK-OFFICE EXPORTS (Step 8) — client-side CSV of the new views
+    // ═══════════════════════════════════════════════════════════════
+    function csvEscape(val) {
+      var s = (val === null || val === undefined) ? '' : String(val);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;               // formula-injection guard
+      if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }
+    function downloadCsv(filename, rows) {
+      var csv = rows.map(function(r){ return r.map(csvEscape).join(','); }).join('\r\n');
+      var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }); // BOM for Excel
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    function today() { return new Date().toISOString().slice(0, 10); }
+
+    function exportHistoricals() {
+      var rows = [['Month','Year','SalesRevenue','SalesCost','SalesMargin','RentalRevenue','TotalRevenue']];
+      (_analytics.monthly || []).forEach(function(m) {
+        rows.push([m.month, m.year, m.sales_revenue, m.sales_cost, m.sales_margin, m.rental_revenue, m.total_revenue]);
+      });
+      downloadCsv('rusti-historicals-' + today() + '.csv', rows);
+    }
+
+    function exportForecast() {
+      // Recompute the currently-selected model + horizon so the file matches the chart.
+      var all = (_analytics.monthly || []).slice();
+      var vals = trimPartialTail(all.map(function(m){ return Number(m.total_revenue); })).vals;
+      var kept = all.slice(0, vals.length);
+      var startIdx = kept[0].month_num - 1;
+      var res = _fcModel === 'holtWinters' ? Forecast.holtWinters(vals, _fcHorizon)
+              : _fcModel === 'linearSeasonal' ? Forecast.linearSeasonal(vals, _fcHorizon, startIdx)
+              : Forecast.sarimaLite(vals, _fcHorizon);
+      var rows = [['Model', FC_NAMES[_fcModel]], ['HorizonMonths', _fcHorizon], [],
+                  ['Month','Type','Revenue','Lower','Upper']];
+      kept.forEach(function(m){ rows.push([m.month, 'Actual', m.total_revenue, '', '']); });
+      if (res) {
+        var lastY = kept[kept.length-1].year, lastM = kept[kept.length-1].month_num;
+        for (var k = 1; k <= _fcHorizon; k++) {
+          var mm = (lastM - 1 + k) % 12, yy = lastY + Math.floor((lastM - 1 + k) / 12);
+          var label = yy + '-' + String(mm + 1).padStart(2, '0') + '-01';
+          rows.push([label, 'Forecast', Math.round(res.forecast[k-1]), Math.round(res.lower[k-1]), Math.round(res.upper[k-1])]);
+        }
+      }
+      downloadCsv('rusti-forecast-' + _fcModel + '-' + today() + '.csv', rows);
+    }
+
+    function exportReorder() {
+      var rows = [['SKU','Product','Category','OnHand','RentalUnits','AvailableForSale',
+                   'AvgMonthlyDemand','StdMonthlyDemand','LeadTimeDays','ServiceZ',
+                   'LeadTimeDemand','SafetyStock','ReorderPoint','ExistingReorderPoint','Status']];
+      (_analytics.reorder || []).forEach(function(r) {
+        var c = computeRop(r);
+        rows.push([r.sku, r.product_name, r.category, r.on_hand, r.rental_units, r.available_for_sale,
+          r.avg_monthly_demand, r.std_monthly_demand, _roLeadDays, _roZ,
+          Math.round(c.leadDemand * 10) / 10, Math.round(c.safety * 10) / 10, c.rop,
+          (r.existing_reorder_point == null ? '' : r.existing_reorder_point),
+          (Number(r.on_hand) <= c.rop ? 'Reorder' : 'OK')]);
+      });
+      downloadCsv('rusti-reorder-' + today() + '.csv', rows);
+    }
+
+    var _exportsInited = false;
+    function initExports() {
+      if (_exportsInited) return;
+      _exportsInited = true;
+      document.getElementById('exp-historicals').addEventListener('click', exportHistoricals);
+      document.getElementById('exp-forecast').addEventListener('click', exportForecast);
+      document.getElementById('exp-reorder').addEventListener('click', exportReorder);
     }
 
     // ── SHARED CHART OPTIONS ─────────────────────────────────────────
