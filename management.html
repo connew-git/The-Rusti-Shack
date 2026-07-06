@@ -558,6 +558,9 @@
       grid: 'rgba(0,0,0,0.06)',
     };
     var CATEGORY_PALETTE = ['#1e6070', '#e07050', '#3a8c5c', '#c9a86a', '#7a5c9e'];
+    // Rule 5 from the Chart Title Playbook: highlight the element the title
+    // names, gray everything else — "one color, used once, does the pointing."
+    var GRAY = 'rgba(157,180,184,0.5)';
 
     var _analytics = null;   // full payload from /api/management-analytics
     var _year = 'all';       // 'all' or a specific year number
@@ -746,7 +749,7 @@
         type: 'bar',
         data: { labels: rows.map(function(r){ return r.category; }), datasets: [
           { label: 'Margin', data: rows.map(function(r){ return r.margin; }),
-            backgroundColor: rows.map(function(_,i){ return CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]; }) },
+            backgroundColor: rows.map(function(_,i){ return i === 0 ? COLORS.teal : GRAY; }) },
         ]},
         options: baseBarOpts(false, function(ctx) {
           var r = rows[ctx.dataIndex];
@@ -773,7 +776,7 @@
         type: 'bar',
         data: { labels: rows.map(function(r){ return r.season; }), datasets: [
           { label: 'Revenue', data: rows.map(function(r){ return r.revenue; }),
-            backgroundColor: [COLORS.coral, COLORS.sand, COLORS.teal2] },
+            backgroundColor: rows.map(function(r){ return (top && r.season === top.season) ? COLORS.coral : GRAY; }) },
         ]},
         options: baseBarOpts(false, function(ctx){ return ' ' + fmtUSD(rows[ctx.dataIndex].revenue); }),
       });
@@ -795,7 +798,8 @@
         type: 'doughnut',
         data: { labels: rows.map(function(r){ return r.customer_type; }), datasets: [
           { data: rows.map(function(r){ return r.revenue; }),
-            backgroundColor: CATEGORY_PALETTE, borderWidth: 2, borderColor: '#fff' },
+            backgroundColor: rows.map(function(_,i){ return i === 0 ? COLORS.teal : ['#9db4b8','#cddadd','#dbe5e7'][i-1] || '#dbe5e7'; }),
+            borderWidth: 2, borderColor: '#fff' },
         ]},
         options: {
           responsive: true, maintainAspectRatio: false,
@@ -831,7 +835,8 @@
       drawChart('ch-loss', {
         type: 'bar',
         data: { labels: shown.map(function(r){ return r.product_name; }), datasets: [
-          { label: 'Lost value (at cost)', data: shown.map(function(r){ return r.lost_value_at_cost; }), backgroundColor: COLORS.coral },
+          { label: 'Lost value (at cost)', data: shown.map(function(r){ return r.lost_value_at_cost; }),
+            backgroundColor: shown.map(function(_,i){ return i === 0 ? COLORS.coral : GRAY; }) },
         ]},
         options: Object.assign(baseBarOpts(false, function(ctx){
           var r = shown[ctx.dataIndex];
