@@ -344,6 +344,24 @@
     }
     .fc-caveat { font-size: 0.68rem; color: var(--muted); margin-top: 0.75rem; font-style: italic; }
 
+    /* ── REORDER TABLE ─────────────────────────────────────────── */
+    .reorder-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+    .reorder-table thead { border-bottom: 2px solid var(--border); }
+    .reorder-table th {
+      padding: 0.55rem 0.7rem; text-align: right; font-size: 0.64rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--teal2); font-weight: bold; white-space: nowrap;
+    }
+    .reorder-table th.l, .reorder-table td.l { text-align: left; }
+    .reorder-table td { padding: 0.5rem 0.7rem; text-align: right; border-bottom: 1px solid #f0f4f5; white-space: nowrap; }
+    .reorder-table tr.flag td { background: rgba(224,112,80,0.07); }
+    .reorder-table tr.flag td.l { font-weight: bold; }
+    .ro-badge {
+      display: inline-block; font-size: 0.62rem; font-weight: bold; letter-spacing: 0.04em;
+      text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 50px;
+    }
+    .ro-badge.reorder { background: rgba(224,112,80,0.15); color: var(--coral); }
+    .ro-badge.ok      { background: rgba(58,140,92,0.13); color: #3a8c5c; }
+
     /* ── RESPONSIVE ────────────────────────────────────────────── */
     @media (max-width: 800px) {
       .chart-grid { grid-template-columns: 1fr; }
@@ -417,6 +435,33 @@
 
         <div class="chart-grid" id="chart-grid">
           <!-- chart cards injected here -->
+        </div>
+
+        <!-- Inventory & reorder (Step 7) -->
+        <div class="chart-card wide" id="reorder-card" style="margin-top:1.25rem">
+          <div class="chart-title" id="ro-title"></div>
+          <div class="chart-sub" id="ro-sub"></div>
+          <div class="fc-controls">
+            <div class="fc-horizon">
+              <label for="ro-leadtime">Lead time</label>
+              <input type="range" id="ro-leadtime" min="3" max="45" step="1" value="14" />
+              <span class="fc-h-val" id="ro-leadtime-val">14 days</span>
+            </div>
+            <div class="fc-horizon">
+              <label for="ro-service">Service level</label>
+              <select id="ro-service" style="font-family:var(--mono);font-size:0.72rem;padding:0.25rem 0.4rem;border:1.5px solid var(--border);border-radius:6px;">
+                <option value="1.28">90%</option>
+                <option value="1.65" selected>95%</option>
+                <option value="2.05">98%</option>
+                <option value="2.33">99%</option>
+              </select>
+            </div>
+            <button class="fc-info-btn" id="ro-info-btn" title="How the reorder point is calculated" aria-label="Reorder method info">i</button>
+          </div>
+          <div class="fc-info-panel" id="ro-info-panel"></div>
+          <div style="overflow-x:auto">
+            <table class="reorder-table" id="ro-table"></table>
+          </div>
         </div>
       </div>
     </div>
@@ -656,6 +701,8 @@
         renderAnalytics();
         initForecast();
         renderForecast();
+        initReorder();
+        renderReorder();
       } catch (err) {
         box.style.display = 'none';
       }
@@ -1049,6 +1096,97 @@
           },
         },
       });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  INVENTORY & REORDER POINTS (Step 7)
+    // ═══════════════════════════════════════════════════════════════
+    var _roLeadDays = 14;
+    var _roZ = 1.65;
+    var DAYS_PER_MONTH = 30.437;
+
+    var RO_INFO =
+      '<strong>Reorder point = lead-time demand + safety stock.</strong> When on-hand stock falls to this number, reordering now means the next shipment should land just as you would otherwise run out.' +
+      '<span class="fc-info-label">Lead-time demand</span> average daily demand × lead time. Daily demand comes from this product\'s history — units sold plus lost/unreturned rentals (returned rentals cycle back, so they don\'t count) — averaged across every month in the record, including zero months.' +
+      '<span class="fc-info-label">Safety stock</span> Z × σ × √(lead time), where σ is the day-to-day variability of demand and Z is the service-level factor (1.65 = 95%: stock out only ~5% of cycles). Choppier demand ⇒ bigger safety buffer; a longer lead time widens it too.' +
+      '<span class="fc-info-label">Why not a flat threshold</span> a fixed number ignores both how fast an item sells and how erratic it is. This ties the trigger to real demand and its variability, so steady sellers carry less buffer and spiky ones carry more.' +
+      '<span class="fc-info-label">Note</span> demand is rolled up to the parent product (variants share a reorder decision). "Existing" shows the reorder point already in the source data, for comparison — this recomputes its own.';
+
+    var _roInited = false;
+    function initReorder() {
+      if (_roInited) return;
+      _roInited = true;
+      var lead = document.getElementById('ro-leadtime');
+      lead.addEventListener('input', function() {
+        _roLeadDays = parseInt(lead.value, 10);
+        document.getElementById('ro-leadtime-val').textContent = _roLeadDays + ' days';
+        renderReorder();
+      });
+      document.getElementById('ro-service').addEventListener('change', function() {
+        _roZ = parseFloat(this.value);
+        renderReorder();
+      });
+      document.getElementById('ro-info-btn').addEventListener('click', function() {
+        var panel = document.getElementById('ro-info-panel');
+        panel.classList.toggle('open');
+        panel.innerHTML = RO_INFO;
+      });
+    }
+
+    function computeRop(row) {
+      var avgDaily = Number(row.avg_monthly_demand) / DAYS_PER_MONTH;
+      var sigmaDaily = Number(row.std_monthly_demand) / Math.sqrt(DAYS_PER_MONTH);
+      var leadDemand = avgDaily * _roLeadDays;
+      var safety = _roZ * sigmaDaily * Math.sqrt(_roLeadDays);
+      var rop = Math.ceil(leadDemand + safety);
+      return { rop: rop, leadDemand: leadDemand, safety: safety, avgDaily: avgDaily };
+    }
+
+    function renderReorder() {
+      var rows = (_analytics.reorder || []).slice();
+      if (!rows.length) {
+        setTitle('ro', 'No inventory data', 'Inventory & reorder points');
+        document.getElementById('ro-table').innerHTML = '';
+        return;
+      }
+
+      rows.forEach(function(r) {
+        var c = computeRop(r);
+        r._rop = c.rop; r._leadDemand = c.leadDemand; r._safety = c.safety;
+        r._needsReorder = Number(r.on_hand) <= c.rop;
+        r._gap = Number(r.on_hand) - c.rop; // negative = below point
+      });
+      // Flagged first, then by how far below the point (most urgent on top).
+      rows.sort(function(a, b) {
+        if (a._needsReorder !== b._needsReorder) return a._needsReorder ? -1 : 1;
+        return a._gap - b._gap;
+      });
+
+      var flagged = rows.filter(function(r) { return r._needsReorder; }).length;
+      setTitle('ro',
+        flagged > 0 ? flagged + ' of ' + rows.length + ' products are at or below their reorder point'
+                    : 'All ' + rows.length + ' products are above their reorder point',
+        'Inventory & reorder points · ' + _roLeadDays + '-day lead time, ' +
+          (Math.round(_roZ * 100) / 100) + 'σ service buffer');
+
+      var head =
+        '<thead><tr>' +
+          '<th class="l">Product</th><th class="l">Category</th>' +
+          '<th>On hand</th><th>Avg/mo</th><th>Reorder pt</th><th>Existing</th><th>Status</th>' +
+        '</tr></thead>';
+      var body = rows.map(function(r) {
+        return '<tr class="' + (r._needsReorder ? 'flag' : '') + '">' +
+          '<td class="l">' + r.product_name + '</td>' +
+          '<td class="l">' + r.category + '</td>' +
+          '<td>' + r.on_hand + '</td>' +
+          '<td>' + Number(r.avg_monthly_demand).toFixed(1) + '</td>' +
+          '<td>' + r._rop + '</td>' +
+          '<td>' + (r.existing_reorder_point == null ? '—' : r.existing_reorder_point) + '</td>' +
+          '<td><span class="ro-badge ' + (r._needsReorder ? 'reorder' : 'ok') + '">' +
+            (r._needsReorder ? 'Reorder' : 'OK') + '</span></td>' +
+        '</tr>';
+      }).join('');
+      document.getElementById('ro-table').innerHTML = head + '<tbody>' + body + '</tbody>';
     }
 
     // ── SHARED CHART OPTIONS ─────────────────────────────────────────

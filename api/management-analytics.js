@@ -18,16 +18,17 @@ module.exports = async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   try {
-    const [monthly, categories, products, rentalLoss, seasons, customers] = await Promise.all([
+    const [monthly, categories, products, rentalLoss, seasons, customers, reorder] = await Promise.all([
       db.from('mgmt_monthly_revenue').select('*').order('month', { ascending: true }),
       db.from('mgmt_category_perf').select('*'),
       db.from('mgmt_product_perf').select('*'),
       db.from('mgmt_rental_loss').select('*'),
       db.from('mgmt_season_revenue').select('*'),
       db.from('mgmt_customer_mix').select('*'),
+      db.from('mgmt_reorder').select('*'),
     ]);
 
-    const firstErr = [monthly, categories, products, rentalLoss, seasons, customers]
+    const firstErr = [monthly, categories, products, rentalLoss, seasons, customers, reorder]
       .map(function(r) { return r.error; })
       .find(Boolean);
     if (firstErr) throw firstErr;
@@ -39,6 +40,7 @@ module.exports = async function handler(req, res) {
       rentalLoss: rentalLoss.data || [],
       seasons:    seasons.data    || [],
       customers:  customers.data  || [],
+      reorder:    reorder.data    || [],
     });
   } catch (err) {
     console.error('management-analytics error:', err);
