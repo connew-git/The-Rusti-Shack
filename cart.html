@@ -106,6 +106,9 @@
       font-size: 0.78rem; color: var(--ocean); font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem;
     }
+    .item-rental-dates {
+      font-size: 0.78rem; color: var(--drift); margin-bottom: 0.5rem;
+    }
     .item-controls { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; }
     .qty-btn {
       width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid #ccc;
@@ -205,6 +208,7 @@
     .csp-item-photo img { width: 32px; height: 32px; object-fit: cover; border-radius: 5px; }
     .csp-item-name { flex: 1; font-weight: 700; line-height: 1.3; }
     .csp-item-variant { font-size: 0.72rem; opacity: 0.75; font-weight: 400; }
+    .csp-item-rental  { font-size: 0.72rem; opacity: 0.75; font-weight: 400; }
     .csp-item-price { font-weight: 700; white-space: nowrap; }
     .csp-divider { border: none; border-top: 1px solid rgba(255,255,255,0.2); margin: 0.25rem 0; }
     .csp-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.2rem 0; }
@@ -524,12 +528,18 @@
           : '<div class="item-photo">' + item.emoji + '</div>';
         var variantHtml = item.variantLabel
           ? '<div class="item-variant">' + item.variantLabel + '</div>' : '';
+        var rentalHtml = item.kind === 'rent'
+          ? '<div class="item-rental-dates">🗓️ ' + item.startDate + ' to ' + item.endDate +
+            ' (' + item.days + (item.days === 1 ? ' day' : ' days') + ') — $' +
+            Number(item.dailyRate).toFixed(2) + '/day</div>'
+          : '';
 
         return '<div class="cart-item">' +
           photoHtml +
           '<div class="item-info">' +
-            '<div class="item-name">' + item.name + '</div>' +
+            '<div class="item-name">' + item.name + (item.kind === 'rent' ? ' (Rental)' : '') + '</div>' +
             variantHtml +
+            rentalHtml +
             '<div class="item-controls">' +
               '<button class="qty-btn" data-idx="' + idx + '" data-delta="-1">&#x2212;</button>' +
               '<span class="qty-val">' + item.qty + '</span>' +
@@ -593,9 +603,14 @@
           ? '<div class="csp-item-photo"><img src="' + item.studioImage + '" alt="" onerror="this.parentNode.textContent=\'' + item.emoji + '\'" /></div>'
           : '<div class="csp-item-photo">' + item.emoji + '</div>';
         var variant = item.variantLabel ? '<div class="csp-item-variant">' + item.variantLabel + '</div>' : '';
+        var rental  = item.kind === 'rent'
+          ? '<div class="csp-item-rental">' + item.startDate + ' to ' + item.endDate +
+            ' (' + item.days + (item.days === 1 ? ' day' : ' days') + ')</div>'
+          : '';
         return '<div class="csp-item">' +
           photo +
-          '<div class="csp-item-name">' + item.name + ' ×' + item.qty + variant + '</div>' +
+          '<div class="csp-item-name">' + item.name + (item.kind === 'rent' ? ' (Rental)' : '') +
+            ' ×' + item.qty + variant + rental + '</div>' +
           '<div class="csp-item-price">$' + (item.price * item.qty).toFixed(2) + '</div>' +
         '</div>';
       }).join('');
