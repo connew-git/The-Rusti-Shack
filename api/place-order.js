@@ -37,26 +37,59 @@ module.exports = async function handler(req, res) {
 
   try {
     // ── 0. Re-price cart from Supabase — never trust client-supplied prices ──
+    // Each item is 'buy' (priced from unit_price) or 'rent' (priced from
+    // rental_rate × number of days). A missing `kind` is treated as 'buy'
+    // for backward compatibility with anything already in a visitor's cart.
     const skus = [...new Set(cart.map(function(item) { return item.sku; }))];
     const [{ data: prodRows, error: prodErr }, { data: varRows, error: varErr }] = await Promise.all([
-      db.from('products').select('sku, unit_price').in('sku', skus),
-      db.from('product_variants').select('sku, unit_price').in('sku', skus),
+      db.from('products').select('sku, unit_price, rental_rate').in('sku', skus),
+      db.from('product_variants').select('sku, unit_price, rental_rate').in('sku', skus),
     ]);
     if (prodErr) throw prodErr;
     if (varErr) throw varErr;
 
     const priceBySku = {};
-    (prodRows || []).forEach(function(p) { priceBySku[p.sku] = Number(p.unit_price); });
-    (varRows  || []).forEach(function(v) { priceBySku[v.sku] = Number(v.unit_price); });
+    (prodRows || []).forEach(function(p) { priceBySku[p.sku] = p; });
+    (varRows  || []).forEach(function(v) { priceBySku[v.sku] = v; });
+
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const todayStr = new Date().toISOString().slice(0, 10);
 
     for (const item of cart) {
-      if (!(item.sku in priceBySku)) {
+      const row = priceBySku[item.sku];
+      if (!row) {
         return res.status(400).json({ error: 'Unknown product: ' + item.sku });
       }
       if (!Number.isInteger(item.qty) || item.qty <= 0) {
         return res.status(400).json({ error: 'Invalid quantity for ' + item.sku });
       }
-      item.price = priceBySku[item.sku];
+
+      item.kind = item.kind === 'rent' ? 'rent' : 'buy';
+
+      if (item.kind === 'buy') {
+        item.price = Number(row.unit_price);
+        continue;
+      }
+
+      // Rent: validate the date range and price it from rental_rate × days.
+      if (row.rental_rate === null || row.rental_rate === undefined) {
+        return res.status(400).json({ error: 'Not available for rent: ' + item.sku });
+      }
+      if (typeof item.startDate !== 'string' || typeof item.endDate !== 'string' ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(item.startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(item.endDate)) {
+        return res.status(400).json({ error: 'Invalid rental dates for ' + item.sku });
+      }
+      if (item.startDate < todayStr) {
+        return res.status(400).json({ error: 'Rental start date is in the past for ' + item.sku });
+      }
+      const days = Math.round((Date.parse(item.endDate) - Date.parse(item.startDate)) / oneDayMs);
+      if (!Number.isInteger(days) || days < 1) {
+        return res.status(400).json({ error: 'End date must be after start date for ' + item.sku });
+      }
+
+      item.days      = days;
+      item.dailyRate = Number(row.rental_rate);
+      item.price     = parseFloat((item.dailyRate * days).toFixed(2)); // per-unit price for the whole period
     }
 
     // ── 1. Customer lookup / create ───────────────────────────────────
@@ -129,17 +162,21 @@ module.exports = async function handler(req, res) {
     if (orderErr) throw orderErr;
 
     // ── 3. Order lines ────────────────────────────────────────────────
+    // For rentals, UnitPrice is the DAILY rate (matching the shop's in-store
+    // rental records) while LineRevenue is the full line total (rate × qty × days).
     const lines = cart.map(function(item, i) {
       return {
         OrderID:                 orderId,
         LineNumber:              i + 1,
         ProductCode:             item.sku,
         Quantity:                item.qty,
-        UnitPrice:               item.price,
+        UnitPrice:               item.kind === 'rent' ? item.dailyRate : item.price,
         DiscountPct:             0,
         LineRevenue:             parseFloat((item.price * item.qty).toFixed(2)),
         LineCost:                0,
         EffectiveDiscountAmount: 0,
+        RentalStartDate:         item.kind === 'rent' ? item.startDate : null,
+        RentalEndDate:           item.kind === 'rent' ? item.endDate   : null,
       };
     });
 
@@ -152,12 +189,15 @@ module.exports = async function handler(req, res) {
     const baseUrl = proto + '://' + host;
 
     const stripeLineItems = cart.map(function(item) {
+      var label = item.variantLabel ? item.name + ' — ' + item.variantLabel : item.name;
+      if (item.kind === 'rent') {
+        label += ' (Rental ' + item.startDate + ' to ' + item.endDate +
+                 ', ' + item.days + (item.days === 1 ? ' day' : ' days') + ')';
+      }
       return {
         price_data: {
           currency: 'usd',
-          product_data: {
-            name: item.variantLabel ? item.name + ' — ' + item.variantLabel : item.name,
-          },
+          product_data: { name: label },
           unit_amount: Math.round(item.price * 100),
         },
         quantity: item.qty,
