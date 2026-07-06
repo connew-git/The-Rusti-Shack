@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Management — The Rusti Shack</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -264,7 +265,55 @@
     }
     .dash-msg a { color: var(--teal2); }
 
+    /* ── ANALYTICS SECTION ─────────────────────────────────────── */
+    .analytics-wrap { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .section-title {
+      font-size: 0.9rem; font-weight: bold; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--teal); margin-bottom: 1rem;
+    }
+
+    /* Year slicer */
+    .slicer-row {
+      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+    .slicer-label {
+      font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); margin-right: 0.3rem;
+    }
+    .slicer-btn {
+      padding: 0.4rem 0.9rem; border: 1.5px solid var(--border); background: var(--card);
+      color: var(--teal); border-radius: 50px; font-family: var(--mono);
+      font-size: 0.75rem; font-weight: bold; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .slicer-btn:hover { border-color: var(--teal2); }
+    .slicer-btn.active { background: var(--teal); color: #fff; border-color: var(--teal); }
+
+    /* Chart grid */
+    .chart-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem;
+    }
+    .chart-card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 1.25rem 1.4rem 1.5rem;
+    }
+    .chart-card.wide { grid-column: 1 / -1; }
+    .chart-title {
+      font-size: 0.9rem; font-weight: bold; color: var(--text);
+      line-height: 1.4; margin-bottom: 0.25rem;
+    }
+    .chart-sub {
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1rem;
+    }
+    .chart-canvas-box { position: relative; height: 300px; }
+    .chart-canvas-box.short { height: 240px; }
+
     /* ── RESPONSIVE ────────────────────────────────────────────── */
+    @media (max-width: 800px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
     @media (max-width: 600px) {
       .mgr-header { padding: 0.75rem 1rem; }
       .mgr-header .h-url { display: none; }
@@ -301,6 +350,20 @@
     <div class="dash-inner" id="dash-inner">
       <div class="dash-msg">Loading&hellip;</div>
     </div>
+
+    <!-- Part C analytics (rendered below the preserved Part B content) -->
+    <div class="dash-inner" id="analytics-inner" style="display:none">
+      <div class="analytics-wrap">
+        <div class="section-title">Business Analytics</div>
+        <div class="slicer-row" id="slicer-row">
+          <span class="slicer-label">Year</span>
+          <!-- year buttons injected here -->
+        </div>
+        <div class="chart-grid" id="chart-grid">
+          <!-- chart cards injected here -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -310,6 +373,7 @@
       document.getElementById('login-wrap').style.display = 'flex';
       document.getElementById('dashboard').classList.remove('visible');
       document.getElementById('btn-logout').style.display = 'none';
+      document.getElementById('analytics-inner').style.display = 'none';
       document.getElementById('login-error').textContent = msg || '';
     }
     function showDashboard() {
@@ -367,6 +431,7 @@
         if (!resp.ok) throw new Error('Server error.');
         renderDashboard(await resp.json());
         showDashboard();
+        loadAnalytics();
       } catch (err) {
         showDashboard();
         document.getElementById('dash-inner').innerHTML =
@@ -482,6 +547,325 @@
         btn.disabled = false;
         btn.textContent = orig;
       }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  PART C ANALYTICS
+    // ═══════════════════════════════════════════════════════════════
+    var COLORS = {
+      teal: '#1e6070', teal2: '#2a7a8c', coral: '#e07050',
+      sand: '#c9a86a', green: '#3a8c5c', muted: '#9db4b8',
+      grid: 'rgba(0,0,0,0.06)',
+    };
+    var CATEGORY_PALETTE = ['#1e6070', '#e07050', '#3a8c5c', '#c9a86a', '#7a5c9e'];
+
+    var _analytics = null;   // full payload from /api/management-analytics
+    var _year = 'all';       // 'all' or a specific year number
+    var _charts = {};        // live Chart.js instances, keyed by canvas id
+
+    function fmtUSD(n)  { return '$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+    function fmtUSD2(n) { return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function sumBy(rows, field) { return rows.reduce(function(s, r) { return s + Number(r[field] || 0); }, 0); }
+
+    // Collapse per-year view rows into one row per key (used for the
+    // "All Years" slice); when a specific year is chosen we just filter.
+    function groupSum(rows, keyField, sumFields) {
+      var map = {};
+      rows.forEach(function(r) {
+        var k = r[keyField];
+        if (!map[k]) { map[k] = {}; map[k][keyField] = k; sumFields.forEach(function(f){ map[k][f] = 0; }); }
+        sumFields.forEach(function(f){ map[k][f] += Number(r[f] || 0); });
+      });
+      return Object.keys(map).map(function(k){ return map[k]; });
+    }
+
+    function sliceRows(rows, sumFields, keyField) {
+      if (_year === 'all') return groupSum(rows, keyField, sumFields);
+      return rows.filter(function(r){ return r.year === _year; });
+    }
+
+    // ── LOAD ────────────────────────────────────────────────────────
+    async function loadAnalytics() {
+      var box = document.getElementById('analytics-inner');
+      try {
+        var resp = await fetch('/api/management-analytics');
+        if (!resp.ok) { box.style.display = 'none'; return; }
+        _analytics = await resp.json();
+        box.style.display = 'block';
+        buildYearSlicer();
+        buildChartCards();
+        renderAnalytics();
+      } catch (err) {
+        box.style.display = 'none';
+      }
+    }
+
+    function buildYearSlicer() {
+      var years = [...new Set((_analytics.monthly || []).map(function(m){ return m.year; }))].sort();
+      var row = document.getElementById('slicer-row');
+      row.innerHTML = '<span class="slicer-label">Year</span>';
+      var opts = ['all'].concat(years);
+      opts.forEach(function(y) {
+        var btn = document.createElement('button');
+        btn.className = 'slicer-btn' + (y === _year ? ' active' : '');
+        btn.textContent = y === 'all' ? 'All Years' : y;
+        btn.addEventListener('click', function() {
+          _year = y;
+          document.querySelectorAll('#slicer-row .slicer-btn').forEach(function(b){ b.classList.remove('active'); });
+          btn.classList.add('active');
+          renderAnalytics();
+        });
+        row.appendChild(btn);
+      });
+    }
+
+    // Static card scaffold — titles/subtitles are filled per-render so
+    // they re-derive when the slicer changes.
+    function buildChartCards() {
+      var defs = [
+        { id: 'ch-revenue',  wide: true },
+        { id: 'ch-margin',   wide: false },
+        { id: 'ch-category', wide: false },
+        { id: 'ch-season',   wide: false },
+        { id: 'ch-customer', wide: false },
+        { id: 'ch-loss',     wide: false },
+      ];
+      var grid = document.getElementById('chart-grid');
+      grid.innerHTML = defs.map(function(d) {
+        return '<div class="chart-card' + (d.wide ? ' wide' : '') + '">' +
+          '<div class="chart-title" id="' + d.id + '-title"></div>' +
+          '<div class="chart-sub" id="' + d.id + '-sub"></div>' +
+          '<div class="chart-canvas-box' + (d.wide ? '' : ' short') + '"><canvas id="' + d.id + '"></canvas></div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function setTitle(id, title, sub) {
+      document.getElementById(id + '-title').textContent = title;
+      document.getElementById(id + '-sub').textContent = sub;
+    }
+    function drawChart(id, config) {
+      if (_charts[id]) _charts[id].destroy();
+      _charts[id] = new Chart(document.getElementById(id).getContext('2d'), config);
+    }
+
+    var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    // ── RENDER (re-run on every slicer change) ───────────────────────
+    function renderAnalytics() {
+      renderRevenue();
+      renderMargin();
+      renderCategory();
+      renderSeason();
+      renderCustomer();
+      renderLoss();
+    }
+
+    // Q1 — monthly revenue, sales vs rental
+    function renderRevenue() {
+      var rows = (_analytics.monthly || []).slice();
+      if (_year !== 'all') rows = rows.filter(function(m){ return m.year === _year; });
+
+      var labels = rows.map(function(m){ return MONTH_NAMES[m.month_num - 1] + ' ' + String(m.year).slice(2); });
+      var sales   = rows.map(function(m){ return Number(m.sales_revenue); });
+      var rentals = rows.map(function(m){ return Number(m.rental_revenue); });
+
+      var totalSales = sales.reduce(function(a,b){ return a+b; }, 0);
+      var totalRent  = rentals.reduce(function(a,b){ return a+b; }, 0);
+
+      // Takeaway
+      var title;
+      if (_year === 'all') {
+        var byYear = groupSum(_analytics.monthly, 'year', ['total_revenue']);
+        byYear.sort(function(a,b){ return a.year - b.year; });
+        if (byYear.length >= 2) {
+          var first = byYear[0], last = byYear[byYear.length - 1];
+          var pct = first.total_revenue > 0 ? Math.round(100 * (last.total_revenue - first.total_revenue) / first.total_revenue) : 0;
+          title = 'Revenue ' + (pct >= 0 ? 'grew ' : 'fell ') + Math.abs(pct) + '% from ' + first.year +
+                  ' (' + fmtUSD(first.total_revenue) + ') to ' + last.year + ' (' + fmtUSD(last.total_revenue) + ')';
+        } else {
+          title = 'Monthly revenue: ' + fmtUSD(totalSales + totalRent) + ' total';
+        }
+      } else {
+        var rentShare = (totalSales + totalRent) > 0 ? Math.round(100 * totalRent / (totalSales + totalRent)) : 0;
+        title = _year + ': ' + fmtUSD(totalSales + totalRent) + ' in revenue — rentals were ' + rentShare + '% of it';
+      }
+      setTitle('ch-revenue', title, 'Monthly revenue · sales vs rental');
+
+      drawChart('ch-revenue', {
+        type: 'line',
+        data: { labels: labels, datasets: [
+          { label: 'Sales',   data: sales,   borderColor: COLORS.teal,  backgroundColor: 'rgba(30,96,112,0.08)',  fill: true, tension: 0.25, pointRadius: 0, borderWidth: 2 },
+          { label: 'Rentals', data: rentals, borderColor: COLORS.coral, backgroundColor: 'rgba(224,112,80,0.08)', fill: true, tension: 0.25, pointRadius: 0, borderWidth: 2 },
+        ]},
+        options: baseLineOpts(),
+      });
+    }
+
+    // Q2 — monthly margin (sales gross margin + rental contribution)
+    function renderMargin() {
+      var rows = (_analytics.monthly || []).slice();
+      if (_year !== 'all') rows = rows.filter(function(m){ return m.year === _year; });
+
+      var labels = rows.map(function(m){ return MONTH_NAMES[m.month_num - 1] + ' ' + String(m.year).slice(2); });
+      var salesMargin = rows.map(function(m){ return Number(m.sales_margin); });
+      var rentContrib = rows.map(function(m){ return Number(m.rental_revenue); });
+
+      var totSalesRev = sumBy(rows, 'sales_revenue');
+      var totSalesMargin = sumBy(rows, 'sales_margin');
+      var marginPct = totSalesRev > 0 ? Math.round(100 * totSalesMargin / totSalesRev) : 0;
+      var totRent = sumBy(rows, 'rental_revenue');
+
+      setTitle('ch-margin',
+        'Sales gross margin runs ~' + marginPct + '%; rentals add ' + fmtUSD(totRent) + ' of near-pure contribution',
+        'Monthly margin · sales COGS-based, rentals as contribution');
+
+      drawChart('ch-margin', {
+        type: 'bar',
+        data: { labels: labels, datasets: [
+          { label: 'Sales margin', data: salesMargin, backgroundColor: COLORS.teal },
+          { label: 'Rental contribution', data: rentContrib, backgroundColor: COLORS.coral },
+        ]},
+        options: baseBarOpts(true),
+      });
+    }
+
+    // Q3 — category performance (margin dollars, margin % in tooltip)
+    function renderCategory() {
+      var rows = sliceRows(_analytics.categories || [], ['revenue','cost','margin','units'], 'category');
+      rows.forEach(function(r){ r.margin_pct = r.revenue > 0 ? (100 * r.margin / r.revenue) : 0; });
+      rows.sort(function(a,b){ return b.margin - a.margin; });
+
+      var top = rows[0];
+      setTitle('ch-category',
+        top ? top.category + ' is the profit engine: ' + fmtUSD(top.margin) + ' margin at ' + Math.round(top.margin_pct) + '%'
+            : 'Category performance',
+        'Gross margin by category');
+
+      drawChart('ch-category', {
+        type: 'bar',
+        data: { labels: rows.map(function(r){ return r.category; }), datasets: [
+          { label: 'Margin', data: rows.map(function(r){ return r.margin; }),
+            backgroundColor: rows.map(function(_,i){ return CATEGORY_PALETTE[i % CATEGORY_PALETTE.length]; }) },
+        ]},
+        options: baseBarOpts(false, function(ctx) {
+          var r = rows[ctx.dataIndex];
+          return ' ' + fmtUSD(r.margin) + ' margin · ' + Math.round(r.margin_pct) + '% · ' + fmtUSD(r.revenue) + ' rev';
+        }),
+      });
+    }
+
+    // Q7 — seasonality
+    function renderSeason() {
+      var rows = sliceRows(_analytics.seasons || [], ['revenue'], 'season');
+      var order = { 'Dry Peak': 0, 'Shoulder': 1, 'Typhoon': 2 };
+      rows.sort(function(a,b){ return (order[a.season] ?? 9) - (order[b.season] ?? 9); });
+      var total = sumBy(rows, 'revenue');
+      var top = rows.slice().sort(function(a,b){ return b.revenue - a.revenue; })[0];
+      var share = (top && total > 0) ? Math.round(100 * top.revenue / total) : 0;
+
+      setTitle('ch-season',
+        top ? top.season + ' drives ' + share + '% of revenue' + (top.season === 'Dry Peak' ? ' — plan stock for Dec–Apr' : '')
+            : 'Revenue by season',
+        'Revenue by Apo Island season');
+
+      drawChart('ch-season', {
+        type: 'bar',
+        data: { labels: rows.map(function(r){ return r.season; }), datasets: [
+          { label: 'Revenue', data: rows.map(function(r){ return r.revenue; }),
+            backgroundColor: [COLORS.coral, COLORS.sand, COLORS.teal2] },
+        ]},
+        options: baseBarOpts(false, function(ctx){ return ' ' + fmtUSD(rows[ctx.dataIndex].revenue); }),
+      });
+    }
+
+    // Q8 — customer mix
+    function renderCustomer() {
+      var rows = sliceRows(_analytics.customers || [], ['revenue','order_count'], 'customer_type');
+      rows.sort(function(a,b){ return b.revenue - a.revenue; });
+      var total = sumBy(rows, 'revenue');
+      var top = rows[0];
+      var share = (top && total > 0) ? Math.round(100 * top.revenue / total) : 0;
+
+      setTitle('ch-customer',
+        top ? top.customer_type + 's bring ' + share + '% of revenue' : 'Customer mix',
+        'Revenue share by customer type');
+
+      drawChart('ch-customer', {
+        type: 'doughnut',
+        data: { labels: rows.map(function(r){ return r.customer_type; }), datasets: [
+          { data: rows.map(function(r){ return r.revenue; }),
+            backgroundColor: CATEGORY_PALETTE, borderWidth: 2, borderColor: '#fff' },
+        ]},
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { font: { family: 'monospace', size: 11 } } },
+            tooltip: { callbacks: { label: function(ctx){
+              var pct = total > 0 ? Math.round(100 * ctx.parsed / total) : 0;
+              return ' ' + ctx.label + ': ' + fmtUSD(ctx.parsed) + ' (' + pct + '%)';
+            } } },
+          },
+        },
+      });
+    }
+
+    // Q6 — rental loss (top offenders by replacement value)
+    function renderLoss() {
+      var rows = sliceRows(_analytics.rentalLoss || [], ['lost_units','rented_units','lost_value_at_cost'], 'sku');
+      // Re-attach product_name (lost in groupSum for 'all') from the source rows.
+      var nameBySku = {};
+      (_analytics.rentalLoss || []).forEach(function(r){ nameBySku[r.sku] = r.product_name; });
+      rows.forEach(function(r){ r.product_name = nameBySku[r.sku] || r.sku; });
+      rows = rows.filter(function(r){ return r.lost_units > 0; });
+      rows.sort(function(a,b){ return b.lost_value_at_cost - a.lost_value_at_cost; });
+      var totalLoss = sumBy(rows, 'lost_value_at_cost');
+      var top = rows[0];
+      var shown = rows.slice(0, 8);
+
+      setTitle('ch-loss',
+        totalLoss > 0 ? fmtUSD(totalLoss) + ' of gear lost to unreturned rentals' + (top ? ' — ' + top.product_name + ' worst' : '')
+                      : 'No rental losses in this period',
+        'Unreturned-rental replacement cost, top items');
+
+      drawChart('ch-loss', {
+        type: 'bar',
+        data: { labels: shown.map(function(r){ return r.product_name; }), datasets: [
+          { label: 'Lost value (at cost)', data: shown.map(function(r){ return r.lost_value_at_cost; }), backgroundColor: COLORS.coral },
+        ]},
+        options: Object.assign(baseBarOpts(false, function(ctx){
+          var r = shown[ctx.dataIndex];
+          return ' ' + fmtUSD2(r.lost_value_at_cost) + ' · ' + r.lost_units + ' units lost';
+        }), { indexAxis: 'y' }),
+      });
+    }
+
+    // ── SHARED CHART OPTIONS ─────────────────────────────────────────
+    function baseLineOpts() {
+      return {
+        responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { font: { family: 'monospace', size: 11 } } },
+          tooltip: { callbacks: { label: function(ctx){ return ' ' + ctx.dataset.label + ': ' + fmtUSD(ctx.parsed.y); } } },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { family: 'monospace', size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+          y: { grid: { color: COLORS.grid }, ticks: { font: { family: 'monospace', size: 10 }, callback: function(v){ return fmtUSD(v); } } },
+        },
+      };
+    }
+    function baseBarOpts(stacked, tooltipLabel) {
+      return {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: {
+          legend: { display: !!stacked, labels: { font: { family: 'monospace', size: 11 } } },
+          tooltip: { callbacks: tooltipLabel ? { label: tooltipLabel } : { label: function(ctx){ return ' ' + fmtUSD(ctx.parsed.y != null ? ctx.parsed.y : ctx.parsed.x); } } },
+        },
+        scales: {
+          x: { stacked: !!stacked, grid: { display: false }, ticks: { font: { family: 'monospace', size: 10 }, autoSkip: true, maxTicksLimit: 12 } },
+          y: { stacked: !!stacked, grid: { color: COLORS.grid }, ticks: { font: { family: 'monospace', size: 10 }, callback: function(v){ return fmtUSD(v); } } },
+        },
+      };
     }
 
     // ── BOOT ───────────────────────────────────────────────────────
