@@ -270,12 +270,30 @@
     .picker-pill:hover:not(:disabled) { border-color: var(--ocean); color: var(--ocean); }
     .picker-pill.selected { background: var(--ocean); border-color: var(--ocean); color: #fff; }
     .picker-pill:disabled { opacity: 0.28; cursor: not-allowed; pointer-events: none; }
-    .modal-rental-note {
-      font-size: 0.8rem; color: var(--ocean); font-style: italic;
-      padding: 0.5rem 0.8rem; background: rgba(42,122,140,0.07);
-      border-radius: 8px; line-height: 1.4;
-    }
     .btn-add:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── RENT DATE PICKER ── */
+    .rent-picker {
+      background: var(--sand); border-radius: 10px; padding: 0.9rem 1rem;
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .rent-dates-row { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+    .fld-date { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 120px; }
+    .fld-date label {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--drift);
+    }
+    .fld-date input[type=date] {
+      padding: 0.5rem 0.6rem; border: 1.5px solid #ddd; border-radius: 8px;
+      font-family: 'Lato', sans-serif; font-size: 0.85rem; outline: none;
+      background: var(--white); transition: border-color 0.2s; width: 100%;
+    }
+    .fld-date input[type=date]:focus { border-color: var(--ocean); }
+    .rent-total { font-size: 0.85rem; color: var(--dark); font-weight: 700; min-height: 1.1rem; }
+    .rent-total-sub { font-weight: 400; color: #999; }
+
+    /* ── GEAR FILTER BAR ── */
+    .gear-filter-bar { display: flex; justify-content: center; gap: 0.6rem; padding: 1.5rem 2rem 0; flex-wrap: wrap; }
 
     /* ── FOOTER ── */
     footer {
@@ -302,6 +320,12 @@
   <div class="page-header">
     <h1>Our Gear</h1>
     <p>Everything you need for a perfect day on Apo Island.</p>
+  </div>
+
+  <div class="gear-filter-bar" id="gear-filter-bar">
+    <button class="picker-pill selected" data-filter="all">All</button>
+    <button class="picker-pill" data-filter="sale">For Sale</button>
+    <button class="picker-pill" data-filter="rent">For Rent</button>
   </div>
 
   <main class="gear-page" id="gear-page">
@@ -332,11 +356,25 @@
         <div class="modal-pricing" id="modal-pricing"></div>
         <div class="modal-badges" id="modal-badges"></div>
         <div id="modal-picker-wrap"></div>
-        <div class="modal-rental-note" id="modal-rental-note" style="display:none">
-          🏝️ Also available to rent in store on Apo Island.
+
+        <div class="rent-picker" id="rent-picker" style="display:none">
+          <div class="picker-label">Rent — pick your dates</div>
+          <div class="rent-dates-row">
+            <div class="fld-date">
+              <label for="modal-rent-start">Start</label>
+              <input type="date" id="modal-rent-start" />
+            </div>
+            <div class="fld-date">
+              <label for="modal-rent-end">Return</label>
+              <input type="date" id="modal-rent-end" />
+            </div>
+          </div>
+          <div class="rent-total" id="rent-total"></div>
         </div>
+
         <div class="modal-actions">
           <button class="btn-add btn-buy" id="modal-add-btn" disabled>Add to Cart</button>
+          <button class="btn-add btn-rent" id="modal-rent-btn" style="display:none" disabled>Reserve</button>
         </div>
       </div>
     </div>
@@ -364,7 +402,7 @@
     // ── CARD BUILDER ──────────────────────────────────────────────
     function buildCard(p) {
       var canBuy  = p.availability === 'Both' || p.availability === 'Sale only';
-      var canRent = p.availability === 'Both' || p.availability === 'Rental only';
+      var canRent = (p.availability === 'Both' || p.availability === 'Rental only') && Boolean(p.rental_rate);
 
       var card = document.createElement('div');
       card.className = 'card';
@@ -413,6 +451,27 @@
       return card;
     }
 
+    // ── FILTER BAR ──────────────────────────────────────────────────
+    var _lastProductsData = [];
+    var _activeFilter     = 'all'; // 'all' | 'sale' | 'rent'
+
+    function passesFilter(p) {
+      if (_activeFilter === 'all') return true;
+      var canBuy  = p.availability === 'Both' || p.availability === 'Sale only';
+      var canRent = (p.availability === 'Both' || p.availability === 'Rental only') && p.rental_rate;
+      return _activeFilter === 'sale' ? canBuy : Boolean(canRent);
+    }
+
+    document.querySelectorAll('#gear-filter-bar .picker-pill').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        _activeFilter = this.dataset.filter;
+        document.querySelectorAll('#gear-filter-bar .picker-pill').forEach(function(b) {
+          b.classList.toggle('selected', b === btn);
+        });
+        renderProductGrid();
+      });
+    });
+
     // ── DATA LOADING ──────────────────────────────────────────────
     function renderProducts() {
       var gearPage = document.getElementById('gear-page');
@@ -441,33 +500,47 @@
           });
         }
 
-        var byCategory = {};
-        prodResult.data.forEach(function(p) {
-          if (!byCategory[p.category]) byCategory[p.category] = [];
-          byCategory[p.category].push(p);
-        });
-
-        gearPage.innerHTML = '';
-        CATEGORY_ORDER.forEach(function(cat) {
-          var items = byCategory[cat.key];
-          if (!items || !items.length) return;
-
-          var group = document.createElement('div');
-          group.className = 'category-group'; group.id = cat.id;
-
-          var labelEl = document.createElement('div');
-          labelEl.className = 'category-label'; labelEl.textContent = cat.label;
-          group.appendChild(labelEl);
-
-          var cardsEl = document.createElement('div');
-          cardsEl.className = 'cards';
-          items.forEach(function(p) { cardsEl.appendChild(buildCard(p)); });
-          group.appendChild(cardsEl);
-          gearPage.appendChild(group);
-        });
-
+        _lastProductsData = prodResult.data;
+        renderProductGrid();
         updateCartCount();
       });
+    }
+
+    function renderProductGrid() {
+      var gearPage = document.getElementById('gear-page');
+      var filtered = _lastProductsData.filter(passesFilter);
+
+      var byCategory = {};
+      filtered.forEach(function(p) {
+        if (!byCategory[p.category]) byCategory[p.category] = [];
+        byCategory[p.category].push(p);
+      });
+
+      gearPage.innerHTML = '';
+      var anyShown = false;
+
+      CATEGORY_ORDER.forEach(function(cat) {
+        var items = byCategory[cat.key];
+        if (!items || !items.length) return;
+        anyShown = true;
+
+        var group = document.createElement('div');
+        group.className = 'category-group'; group.id = cat.id;
+
+        var labelEl = document.createElement('div');
+        labelEl.className = 'category-label'; labelEl.textContent = cat.label;
+        group.appendChild(labelEl);
+
+        var cardsEl = document.createElement('div');
+        cardsEl.className = 'cards';
+        items.forEach(function(p) { cardsEl.appendChild(buildCard(p)); });
+        group.appendChild(cardsEl);
+        gearPage.appendChild(group);
+      });
+
+      if (!anyShown) {
+        gearPage.innerHTML = '<p style="text-align:center;padding:3rem;color:#aaa">Nothing matches that filter right now.</p>';
+      }
     }
 
     // ── CART ──────────────────────────────────────────────────────
@@ -485,12 +558,14 @@
 
     function addToCart(sku, name, variantLabel, emoji, studioImage, price) {
       var cart     = getCart();
-      var existing = cart.find(function(i) { return i.sku === sku; });
+      // Match only existing BUY lines for this sku — a rental of the same sku
+      // is a separate booking and must not merge into a purchase line.
+      var existing = cart.find(function(i) { return i.sku === sku && (i.kind || 'buy') === 'buy'; });
       if (existing) {
         existing.qty++;
       } else {
         cart.push({ sku: sku, name: name, variantLabel: variantLabel,
-                    emoji: emoji, studioImage: studioImage, price: price, qty: 1 });
+                    emoji: emoji, studioImage: studioImage, price: price, qty: 1, kind: 'buy' });
       }
       saveCart(cart);
       updateCartCount();
@@ -500,6 +575,35 @@
       if (btn) {
         var orig = btn.textContent;
         btn.textContent = '✓ Added to Cart!';
+        btn.disabled = true;
+        setTimeout(function() { closeModal(); btn.textContent = orig; btn.disabled = false; }, 900);
+      } else {
+        closeModal();
+      }
+    }
+
+    function addRentalToCart(sku, name, variantLabel, emoji, studioImage, dailyRate, startDate, endDate, days) {
+      var cart  = getCart();
+      var price = parseFloat((dailyRate * days).toFixed(2)); // per-unit price for the whole period
+      // A rental is keyed by sku + exact date range — different dates are a
+      // different booking, not more of the same one.
+      var existing = cart.find(function(i) {
+        return i.kind === 'rent' && i.sku === sku && i.startDate === startDate && i.endDate === endDate;
+      });
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ sku: sku, name: name, variantLabel: variantLabel, emoji: emoji,
+                    studioImage: studioImage, kind: 'rent', startDate: startDate, endDate: endDate,
+                    days: days, dailyRate: dailyRate, price: price, qty: 1 });
+      }
+      saveCart(cart);
+      updateCartCount();
+
+      var btn = document.getElementById('modal-rent-btn');
+      if (btn) {
+        var orig = btn.textContent;
+        btn.textContent = '✓ Reserved!';
         btn.disabled = true;
         setTimeout(function() { closeModal(); btn.textContent = orig; btn.disabled = false; }, 900);
       } else {
@@ -603,6 +707,7 @@
       });
 
       updateAddBtn();
+      updateRentUI();
     }
 
     function pickOpt(key, val) {
@@ -639,6 +744,61 @@
         btn.dataset.readyPrice = p.unit_price;
         btn.dataset.readyLabel = '';
       }
+    }
+
+    function updateRentUI() {
+      var wrap    = document.getElementById('rent-picker');
+      var btn     = document.getElementById('modal-rent-btn');
+      var totalEl = document.getElementById('rent-total');
+      var p       = _currentProduct;
+      if (!wrap || !btn || !p) return;
+
+      var canRent = p.availability === 'Both' || p.availability === 'Rental only';
+      if (!canRent) { wrap.style.display = 'none'; btn.style.display = 'none'; return; }
+
+      wrap.style.display = 'block';
+      btn.style.display  = 'block';
+
+      // Which row (parent product or a fully-selected variant) prices the rental.
+      var row = _dims.length > 0 ? findSelectedVariant() : p;
+      var rate = row ? Number(row.rental_rate) : 0;
+
+      if (!rate) {
+        btn.disabled = true;
+        delete btn.dataset.readyRentSku;
+        totalEl.textContent = (_dims.length > 0 && !row)
+          ? 'Choose options above to see the rental price.'
+          : 'Not available to rent.';
+        return;
+      }
+
+      var startVal = document.getElementById('modal-rent-start').value;
+      var endVal   = document.getElementById('modal-rent-end').value;
+
+      if (!startVal || !endVal) {
+        btn.disabled = true;
+        delete btn.dataset.readyRentSku;
+        totalEl.innerHTML = '$' + rate.toFixed(2) + ' <span class="rent-total-sub">per day — pick your dates</span>';
+        return;
+      }
+
+      var days = Math.round((Date.parse(endVal) - Date.parse(startVal)) / 86400000);
+      if (!Number.isInteger(days) || days < 1) {
+        btn.disabled = true;
+        delete btn.dataset.readyRentSku;
+        totalEl.innerHTML = '<span class="rent-total-sub">Return date must be after the start date.</span>';
+        return;
+      }
+
+      var total = rate * days;
+      btn.disabled    = false;
+      btn.textContent = 'Reserve — $' + total.toFixed(2);
+      btn.dataset.readyRentSku   = row.sku;
+      btn.dataset.readyRentRate  = rate;
+      btn.dataset.readyRentDays  = days;
+      btn.dataset.readyRentLabel = _dims.length > 0 ? buildVariantLabel(row) : '';
+      totalEl.innerHTML = '$' + rate.toFixed(2) + ' <span class="rent-total-sub">/day × ' +
+        days + (days === 1 ? ' day' : ' days') + '</span>';
     }
 
     // ── PRODUCT MODAL ─────────────────────────────────────────────
@@ -701,11 +861,14 @@
         badgesEl.innerHTML += '<span class="badge ' + cls + '">' + b.textContent + '</span>';
       });
 
-      // In-store rental note (availability = 'Both')
-      var noteEl = document.getElementById('modal-rental-note');
-      if (noteEl) noteEl.style.display = (product && product.availability === 'Both') ? 'block' : 'none';
+      // Rental date pickers — reset for the newly opened product
+      var todayStr     = new Date().toISOString().slice(0, 10);
+      var startInputEl = document.getElementById('modal-rent-start');
+      var endInputEl   = document.getElementById('modal-rent-end');
+      startInputEl.min = todayStr; startInputEl.value = '';
+      endInputEl.min   = todayStr; endInputEl.value   = '';
 
-      // Variant pickers
+      // Variant pickers (also refreshes Buy + Rent pricing/availability)
       renderVariantPicker();
 
       overlay.classList.add('open');
@@ -738,6 +901,32 @@
         p.emoji,
         p.studio_image || null,
         parseFloat(this.dataset.readyPrice)
+      );
+    });
+
+    // Rental date pickers — recompute price/availability as dates change
+    document.getElementById('modal-rent-start').addEventListener('change', function() {
+      var endInputEl = document.getElementById('modal-rent-end');
+      endInputEl.min = this.value || new Date().toISOString().slice(0, 10);
+      if (endInputEl.value && endInputEl.value <= this.value) endInputEl.value = '';
+      updateRentUI();
+    });
+    document.getElementById('modal-rent-end').addEventListener('change', updateRentUI);
+
+    // Reserve (rent) button
+    document.getElementById('modal-rent-btn').addEventListener('click', function() {
+      if (this.disabled || !this.dataset.readyRentSku) return;
+      var p = _currentProduct;
+      addRentalToCart(
+        this.dataset.readyRentSku,
+        p.name,
+        this.dataset.readyRentLabel || '',
+        p.emoji,
+        p.studio_image || null,
+        parseFloat(this.dataset.readyRentRate),
+        document.getElementById('modal-rent-start').value,
+        document.getElementById('modal-rent-end').value,
+        parseInt(this.dataset.readyRentDays, 10)
       );
     });
 
