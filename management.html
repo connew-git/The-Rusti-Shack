@@ -362,6 +362,84 @@
     .ro-badge.reorder { background: rgba(224,112,80,0.15); color: var(--coral); }
     .ro-badge.ok      { background: rgba(58,140,92,0.13); color: #3a8c5c; }
 
+    /* ── ASK THE DATA ASSISTANT ────────────────────────────────── */
+    .asst-card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 1.25rem 1.4rem 1.5rem; margin-top: 1.5rem;
+    }
+    .asst-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .asst-head .section-title { margin-bottom: 0; }
+    .asst-controls { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+    .asst-controls select {
+      font-family: var(--mono); font-size: 0.72rem; padding: 0.3rem 0.45rem;
+      border: 1.5px solid var(--border); border-radius: 6px; background: #f8fafa; color: var(--text);
+    }
+    .asst-cost { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.03em; white-space: nowrap; }
+    .asst-cost b { color: var(--teal); }
+
+    .asst-log {
+      display: flex; flex-direction: column; gap: 0.85rem;
+      max-height: 460px; overflow-y: auto; padding: 0.25rem 0.15rem 0.5rem;
+    }
+    .asst-empty { color: var(--muted); font-size: 0.78rem; line-height: 1.6; padding: 0.5rem 0; }
+    .asst-empty ul { margin: 0.5rem 0 0 1.1rem; }
+    .asst-empty li { cursor: pointer; color: var(--teal2); margin-bottom: 0.25rem; }
+    .asst-empty li:hover { text-decoration: underline; }
+
+    .asst-msg { max-width: 88%; font-size: 0.8rem; line-height: 1.55; }
+    .asst-msg.user {
+      align-self: flex-end; background: var(--teal); color: #fff;
+      padding: 0.55rem 0.85rem; border-radius: 12px 12px 2px 12px; white-space: pre-wrap;
+    }
+    .asst-msg.bot {
+      align-self: flex-start; background: #f2f6f7; border: 1.5px solid var(--border);
+      color: var(--text); padding: 0.7rem 0.95rem; border-radius: 12px 12px 12px 2px; width: 88%;
+    }
+    .asst-msg.bot p { margin: 0 0 0.5rem; }
+    .asst-msg.bot p:last-child { margin-bottom: 0; }
+    .asst-msg.bot table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.74rem; }
+    .asst-msg.bot th, .asst-msg.bot td { border: 1px solid var(--border); padding: 0.3rem 0.5rem; text-align: left; }
+    .asst-msg.bot th { background: rgba(30,96,112,0.07); }
+
+    .asst-chart-box { position: relative; height: 280px; margin-top: 0.75rem; }
+    .asst-numbercard {
+      margin-top: 0.75rem; padding: 1rem 1.25rem; background: rgba(30,96,112,0.06);
+      border: 1.5px solid var(--border); border-radius: 8px; text-align: center;
+    }
+    .asst-numbercard .n-val { font-size: 1.7rem; font-weight: bold; color: var(--teal); }
+    .asst-numbercard .n-lbl { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+    .asst-chart-empty { margin-top: 0.75rem; padding: 1.25rem; text-align: center; color: var(--muted); font-size: 0.76rem; border: 1.5px dashed var(--border); border-radius: 8px; }
+
+    .asst-disclosure { margin-top: 0.6rem; font-size: 0.72rem; }
+    .asst-disclosure summary { cursor: pointer; color: var(--teal2); font-weight: bold; }
+    .asst-disclosure pre {
+      background: #1a2628; color: #d8e6e8; padding: 0.6rem 0.75rem; border-radius: 6px;
+      overflow-x: auto; margin: 0.5rem 0; font-size: 0.7rem; white-space: pre-wrap; word-break: break-word;
+    }
+    .asst-disclosure table { border-collapse: collapse; width: 100%; font-size: 0.68rem; }
+    .asst-disclosure th, .asst-disclosure td { border: 1px solid var(--border); padding: 0.25rem 0.45rem; }
+    .asst-disclosure .q-note { color: var(--muted); }
+    .asst-disclosure .q-err { color: #c0392b; }
+
+    .asst-form { display: flex; gap: 0.6rem; margin-top: 1rem; }
+    .asst-form input {
+      flex: 1; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border); border-radius: 6px;
+      font-family: var(--mono); font-size: 0.82rem; background: #f8fafa; outline: none;
+    }
+    .asst-form input:focus { border-color: var(--teal2); background: #fff; }
+    .asst-form button {
+      padding: 0.6rem 1.2rem; background: var(--teal); color: #fff; border: none; border-radius: 6px;
+      font-family: var(--mono); font-size: 0.78rem; font-weight: bold; letter-spacing: 0.06em;
+      text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+    }
+    .asst-form button:hover:not(:disabled) { background: var(--teal2); }
+    .asst-form button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .asst-typing { align-self: flex-start; color: var(--muted); font-size: 0.78rem; font-style: italic; }
+    .asst-error { color: #c0392b; font-size: 0.76rem; margin-top: 0.5rem; }
+
     /* ── RESPONSIVE ────────────────────────────────────────────── */
     @media (max-width: 800px) {
       .chart-grid { grid-template-columns: 1fr; }
@@ -371,6 +449,8 @@
       .mgr-header .h-url { display: none; }
       .dash-inner { padding: 1.25rem 1rem 3rem; }
       .mgr-table th, .mgr-table td { padding: 0.55rem 0.75rem; }
+      .asst-msg { max-width: 95%; }
+      .asst-head { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -401,6 +481,37 @@
   <div id="dashboard">
     <div class="dash-inner" id="dash-inner">
       <div class="dash-msg">Loading&hellip;</div>
+    </div>
+
+    <!-- Ask the Data assistant (private, management-only) -->
+    <div class="dash-inner" id="assistant-inner" style="display:none; padding-top:0;">
+      <div class="asst-card">
+        <div class="asst-head">
+          <div class="section-title">Ask the Data</div>
+          <div class="asst-controls">
+            <label class="asst-cost" for="asst-model" style="text-transform:uppercase;letter-spacing:0.1em;">Model</label>
+            <select id="asst-model"></select>
+            <span class="asst-cost" id="asst-cost">This session: <b>$0.000000</b></span>
+          </div>
+        </div>
+        <div class="asst-log" id="asst-log">
+          <div class="asst-empty" id="asst-empty">
+            Ask a plain-English question about the shop&rsquo;s own data. Answers come only from your
+            database &mdash; the assistant never sees customer names, emails, or phone numbers.
+            <ul>
+              <li data-q="What were my top 5 products by revenue in 2024?">What were my top 5 products by revenue in 2024?</li>
+              <li data-q="How did total revenue trend month by month?">How did total revenue trend month by month?</li>
+              <li data-q="Which category has the best margin?">Which category has the best margin?</li>
+              <li data-q="How much rental revenue did I lose to unreturned gear?">How much rental revenue did I lose to unreturned gear?</li>
+            </ul>
+          </div>
+        </div>
+        <div class="asst-error" id="asst-error" style="display:none;"></div>
+        <form class="asst-form" id="asst-form" autocomplete="off">
+          <input type="text" id="asst-input" placeholder="Ask about sales, rentals, products, customers&hellip;" />
+          <button type="submit" id="asst-send">Ask</button>
+        </form>
+      </div>
     </div>
 
     <!-- Part C analytics (rendered below the preserved Part B content) -->
@@ -485,6 +596,7 @@
       document.getElementById('dashboard').classList.remove('visible');
       document.getElementById('btn-logout').style.display = 'none';
       document.getElementById('analytics-inner').style.display = 'none';
+      document.getElementById('assistant-inner').style.display = 'none';
       document.getElementById('login-error').textContent = msg || '';
     }
     function showDashboard() {
@@ -542,6 +654,7 @@
         if (!resp.ok) throw new Error('Server error.');
         renderDashboard(await resp.json());
         showDashboard();
+        initAssistant();
         loadAnalytics();
       } catch (err) {
         showDashboard();
@@ -1303,6 +1416,325 @@
           y: { stacked: !!stacked, grid: { color: COLORS.grid }, ticks: { font: { family: 'monospace', size: 10 }, callback: function(v){ return fmtUSD(v); } } },
         },
       };
+    }
+
+    // ── ASK THE DATA ASSISTANT ──────────────────────────────────────
+    // Session-only memory: this array is rebuilt from scratch on every page
+    // load and never touches localStorage, so a follow-up like "now chart
+    // that" works within the session but nothing persists across sessions
+    // or users (build-spec §5).
+    var _asstMessages = [];
+    var _asstBusy = false;
+    var _asstInit = false;
+    var _asstCharts = {};        // live Chart.js instances for answer charts
+    var _asstSessionCost = 0;
+
+    // Cheapest first; matches the MODELS allow-list in api/assistant-ask.js.
+    var ASST_MODELS = [
+      { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (cheapest)' },
+      { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+      { id: 'gemini-1.5-pro',   label: 'Gemini 1.5 Pro (strongest)' },
+    ];
+
+    function initAssistant() {
+      document.getElementById('assistant-inner').style.display = 'block';
+      if (_asstInit) return;
+      _asstInit = true;
+
+      var sel = document.getElementById('asst-model');
+      sel.innerHTML = ASST_MODELS.map(function (m) {
+        return '<option value="' + m.id + '">' + m.label + '</option>';
+      }).join('');
+
+      document.getElementById('asst-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = document.getElementById('asst-input').value.trim();
+        if (v) askAssistant(v);
+      });
+
+      // Example-question chips.
+      var empty = document.getElementById('asst-empty');
+      if (empty) {
+        empty.querySelectorAll('li[data-q]').forEach(function (li) {
+          li.addEventListener('click', function () { askAssistant(li.getAttribute('data-q')); });
+        });
+      }
+    }
+
+    async function askAssistant(question) {
+      if (_asstBusy) return;
+      _asstBusy = true;
+
+      var empty = document.getElementById('asst-empty');
+      if (empty) empty.remove();
+      document.getElementById('asst-error').style.display = 'none';
+      document.getElementById('asst-input').value = '';
+
+      _asstMessages.push({ role: 'user', content: question });
+      appendUserBubble(question);
+
+      var send = document.getElementById('asst-send');
+      send.disabled = true;
+      var typing = appendTyping();
+
+      try {
+        var resp = await fetch('/api/assistant-ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: _asstMessages,
+            model: document.getElementById('asst-model').value,
+          }),
+        });
+
+        typing.remove();
+
+        if (resp.status === 401) { showLogin('Session expired.'); return; }
+        var data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Request failed.');
+
+        _asstMessages.push({ role: 'assistant', content: data.answer || '' });
+        appendBotAnswer(data);
+        updateCost(data.usage);
+      } catch (err) {
+        if (typing.parentNode) typing.remove();
+        var box = document.getElementById('asst-error');
+        box.textContent = err.message;
+        box.style.display = 'block';
+        // Drop the failed turn from memory so it doesn't poison the next call.
+        _asstMessages.pop();
+      } finally {
+        _asstBusy = false;
+        send.disabled = false;
+      }
+    }
+
+    function asstLog() { return document.getElementById('asst-log'); }
+    function scrollAsst() { var l = asstLog(); l.scrollTop = l.scrollHeight; }
+
+    function appendUserBubble(text) {
+      var d = document.createElement('div');
+      d.className = 'asst-msg user';
+      d.textContent = text;
+      asstLog().appendChild(d);
+      scrollAsst();
+    }
+
+    function appendTyping() {
+      var d = document.createElement('div');
+      d.className = 'asst-typing';
+      d.textContent = 'Reading your data…';
+      asstLog().appendChild(d);
+      scrollAsst();
+      return d;
+    }
+
+    function appendBotAnswer(data) {
+      var wrap = document.createElement('div');
+      wrap.className = 'asst-msg bot';
+      wrap.innerHTML = renderMarkdown(data.answer || 'I couldn\'t find that in your data.');
+
+      // Chart (structured spec from the model — the app draws it, §4).
+      if (data.chart) {
+        var chartNode = renderAsstChart(data.chart);
+        if (chartNode) wrap.appendChild(chartNode);
+      }
+
+      // Transparency (§8): the query and the underlying rows, collapsed.
+      if (data.queries && data.queries.length) {
+        wrap.appendChild(renderQueryDisclosure(data.queries));
+      }
+
+      asstLog().appendChild(wrap);
+      scrollAsst();
+    }
+
+    // Minimal, safe markdown: escape first, then re-introduce bold, simple
+    // pipe tables, and paragraphs. No raw HTML from the model is ever run.
+    function renderMarkdown(md) {
+      var esc = String(md)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      var lines = esc.split('\n');
+      var out = [];
+      var i = 0;
+      while (i < lines.length) {
+        // Table block: a header row of pipes followed by a --- separator.
+        if (/\|/.test(lines[i]) && i + 1 < lines.length && /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i + 1])) {
+          var tbl = ['<table>'];
+          var header = splitRow(lines[i]);
+          tbl.push('<tr>' + header.map(function (c) { return '<th>' + inline(c) + '</th>'; }).join('') + '</tr>');
+          i += 2;
+          while (i < lines.length && /\|/.test(lines[i])) {
+            var cells = splitRow(lines[i]);
+            tbl.push('<tr>' + cells.map(function (c) { return '<td>' + inline(c) + '</td>'; }).join('') + '</tr>');
+            i++;
+          }
+          tbl.push('</table>');
+          out.push(tbl.join(''));
+          continue;
+        }
+        if (lines[i].trim() === '') { i++; continue; }
+        out.push('<p>' + inline(lines[i]) + '</p>');
+        i++;
+      }
+      return out.join('');
+
+      function splitRow(row) {
+        return row.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(function (s) { return s.trim(); });
+      }
+      function inline(s) { return s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>'); }
+    }
+
+    var ASST_PALETTE = ['#1e6070', '#e07050', '#3a8c5c', '#c9a86a', '#7a5c9e', '#2a7a8c', '#b5651d', '#5c8a8a'];
+
+    // Renders one of the four supported chart types. Enforces the 15-item cap
+    // and the explicit empty state (§4). Returns a DOM node (or null).
+    function renderAsstChart(spec) {
+      var values = Array.isArray(spec.values) ? spec.values : [];
+      var labels = Array.isArray(spec.labels) ? spec.labels : [];
+
+      // Number card — single headline figure.
+      if (spec.type === 'number') {
+        if (!values.length) return chartEmpty();
+        var card = document.createElement('div');
+        card.className = 'asst-numbercard';
+        card.innerHTML = '<div class="n-val">' + formatMaybeMoney(values[0]) + '</div>' +
+          '<div class="n-lbl">' + (spec.title || '') + '</div>';
+        return card;
+      }
+
+      if (!values.length) return chartEmpty();
+
+      // 15-item cap: keep the largest 15, note the trim (§4).
+      var note = '';
+      if (labels.length > 15 || values.length > 15) {
+        var paired = labels.map(function (l, idx) { return { l: l, v: values[idx] }; });
+        paired.sort(function (a, b) { return Math.abs(b.v) - Math.abs(a.v); });
+        paired = paired.slice(0, 15);
+        labels = paired.map(function (p) { return p.l; });
+        values = paired.map(function (p) { return p.v; });
+        note = 'Showing the top 15 only.';
+      }
+      if (!labels.length) labels = values.map(function (_, idx) { return String(idx + 1); });
+
+      var box = document.createElement('div');
+      var canvasId = 'asst-ch-' + (Date.now() + Math.floor(Math.random() * 1000));
+      box.className = 'asst-chart-box';
+      box.innerHTML = '<canvas id="' + canvasId + '"></canvas>';
+
+      var colors = Array.isArray(spec.colors) && spec.colors.length
+        ? spec.colors
+        : labels.map(function (_, idx) { return ASST_PALETTE[idx % ASST_PALETTE.length]; });
+
+      var config;
+      if (spec.type === 'pie') {
+        config = {
+          type: 'pie',
+          data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#fff', borderWidth: 1.5 }] },
+          options: { responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { position: 'right', labels: { font: { family: 'monospace', size: 10 } } },
+              title: spec.title ? { display: true, text: spec.title, font: { family: 'monospace', size: 12 } } : { display: false } } },
+        };
+      } else if (spec.type === 'line') {
+        config = {
+          type: 'line',
+          data: { labels: labels, datasets: [{ label: spec.title || 'Value', data: values, borderColor: COLORS.teal, backgroundColor: 'rgba(30,96,112,0.08)', fill: true, tension: 0.25, pointRadius: 2, borderWidth: 2 }] },
+          options: { responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false }, title: spec.title ? { display: true, text: spec.title, font: { family: 'monospace', size: 12 } } : { display: false } },
+            scales: { x: { grid: { display: false }, ticks: { font: { family: 'monospace', size: 10 }, autoSkip: true, maxTicksLimit: 12 } },
+              y: { grid: { color: COLORS.grid }, ticks: { font: { family: 'monospace', size: 10 } } } } },
+        };
+      } else { // horizontal bar (default)
+        config = {
+          type: 'bar',
+          data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false,
+            plugins: { legend: { display: false }, title: spec.title ? { display: true, text: spec.title, font: { family: 'monospace', size: 12 } } : { display: false } },
+            scales: { x: { grid: { color: COLORS.grid }, ticks: { font: { family: 'monospace', size: 10 } } },
+              y: { grid: { display: false }, ticks: { font: { family: 'monospace', size: 10 } } } } },
+        };
+      }
+
+      // Defer construction until the canvas is in the DOM.
+      setTimeout(function () {
+        var el = document.getElementById(canvasId);
+        if (el) _asstCharts[canvasId] = new Chart(el.getContext('2d'), config);
+      }, 0);
+
+      if (note) {
+        var wrapper = document.createElement('div');
+        wrapper.appendChild(box);
+        var n = document.createElement('div');
+        n.className = 'chart-sub';
+        n.style.marginTop = '0.4rem';
+        n.textContent = note;
+        wrapper.appendChild(n);
+        return wrapper;
+      }
+      return box;
+    }
+
+    function chartEmpty() {
+      var d = document.createElement('div');
+      d.className = 'asst-chart-empty';
+      d.textContent = 'No data to chart.';
+      return d;
+    }
+
+    function formatMaybeMoney(v) {
+      var n = Number(v);
+      if (isNaN(n)) return String(v);
+      return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+
+    function renderQueryDisclosure(queries) {
+      var det = document.createElement('details');
+      det.className = 'asst-disclosure';
+      var html = '<summary>Show query &amp; data</summary>';
+      queries.forEach(function (q, idx) {
+        html += '<div style="margin-top:0.5rem;">';
+        html += '<pre>' + escapeHtml(q.sql || '') + '</pre>';
+        if (q.error) {
+          html += '<div class="q-err">Error: ' + escapeHtml(q.error) + '</div>';
+        } else if (q.rows && q.rows.length) {
+          html += rowsToTable(q.columns, q.rows);
+          if (q.truncated) html += '<div class="q-note">Showing the first ' + q.rows.length + ' rows.</div>';
+        } else {
+          html += '<div class="q-note">No rows returned.</div>';
+        }
+        html += '</div>';
+      });
+      det.innerHTML = html;
+      return det;
+    }
+
+    function rowsToTable(columns, rows) {
+      var cols = columns && columns.length ? columns : Object.keys(rows[0] || {});
+      var out = ['<table><tr>'];
+      cols.forEach(function (c) { out.push('<th>' + escapeHtml(c) + '</th>'); });
+      out.push('</tr>');
+      rows.slice(0, 25).forEach(function (r) {
+        out.push('<tr>');
+        cols.forEach(function (c) { out.push('<td>' + escapeHtml(r[c] == null ? '' : String(r[c])) + '</td>'); });
+        out.push('</tr>');
+      });
+      out.push('</table>');
+      return out.join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function updateCost(usage) {
+      if (!usage) return;
+      _asstSessionCost += Number(usage.estCostUsd || 0);
+      document.getElementById('asst-cost').innerHTML =
+        'This session: <b>$' + _asstSessionCost.toFixed(6) + '</b>' +
+        (usage.monthToDateUsd != null
+          ? ' · Month: $' + Number(usage.monthToDateUsd).toFixed(4) + ' / $' + Number(usage.monthlyCapUsd).toFixed(2)
+          : '');
     }
 
     // ── BOOT ───────────────────────────────────────────────────────
