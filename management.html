@@ -491,7 +491,7 @@
           <div class="asst-controls">
             <label class="asst-cost" for="asst-model" style="text-transform:uppercase;letter-spacing:0.1em;">Model</label>
             <select id="asst-model"></select>
-            <span class="asst-cost" id="asst-cost">This session: <b>$0.000000</b></span>
+            <span class="asst-cost" id="asst-cost" title="Estimated at paid-tier prices for visibility — the free Gemini tier bills $0. This also drives the monthly cap.">Est. session: <b>$0.000000</b></span>
           </div>
         </div>
         <div class="asst-log" id="asst-log">
@@ -1733,7 +1733,7 @@
       if (!usage) return;
       _asstSessionCost += Number(usage.estCostUsd || 0);
       document.getElementById('asst-cost').innerHTML =
-        'This session: <b>$' + _asstSessionCost.toFixed(6) + '</b>' +
+        'Est. session: <b>$' + _asstSessionCost.toFixed(6) + '</b>' +
         (usage.monthToDateUsd != null
           ? ' · Month: $' + Number(usage.monthToDateUsd).toFixed(4) + ' / $' + Number(usage.monthlyCapUsd).toFixed(2)
           : '');
