@@ -155,10 +155,21 @@ module.exports = async function handler(req, res) {
     outputTokens += Number(u.candidatesTokenCount || 0);
   }
 
+  // Safely pull any text parts out of a response — returns '' when the turn
+  // was only tool calls. Gemini often puts its written summary in the SAME
+  // turn as a render_chart call, so we capture text on every turn, not just
+  // the last one.
+  function grabText(response) {
+    try { return (response.text() || '').trim(); } catch (e) { return ''; }
+  }
+
+  let finalText = '';
+
   try {
     const chat = model.startChat({ history: history, tools: TOOLS });
     let result = await chat.sendMessage(question);
     accountUsage(result.response);
+    finalText = grabText(result.response) || finalText;
 
     let turns = 0;
     while (turns < MAX_TOOL_TURNS) {
@@ -197,11 +208,15 @@ module.exports = async function handler(req, res) {
 
       result = await chat.sendMessage(responses);
       accountUsage(result.response);
+      finalText = grabText(result.response) || finalText;
     }
 
-    let answer = '';
-    try { answer = result.response.text() || ''; } catch (e) { answer = ''; }
-    if (!answer) answer = 'I couldn\'t find that in your data.';
+    // Only fall back to "couldn't find" when we genuinely retrieved nothing.
+    // If the model charted results or a query returned rows, an empty text
+    // turn shouldn't contradict the data on screen.
+    const foundData = !!chartSpec || executions.some(function (e) { return e.rows && e.rows.length; });
+    let answer = finalText;
+    if (!answer) answer = foundData ? 'Here\'s what I found:' : 'I couldn\'t find that in your data.';
 
     // ── Cost + audit log ──────────────────────────────────────────────
     const price = MODELS[modelId];
