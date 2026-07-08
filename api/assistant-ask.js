@@ -24,11 +24,12 @@ const SUPABASE_URL = 'https://igfgyuuucaezuqtdvykl.supabase.co';
 // but keeping usage visible is the point (build-spec §6). Cheapest first;
 // the UI defaults to DEFAULT_MODEL.
 const MODELS = {
-  'gemini-2.0-flash':     { label: 'Gemini 2.0 Flash (cheapest)', inUsd: 0.10, outUsd: 0.40 },
-  'gemini-1.5-flash':     { label: 'Gemini 1.5 Flash',            inUsd: 0.075, outUsd: 0.30 },
-  'gemini-1.5-pro':       { label: 'Gemini 1.5 Pro (strongest)',  inUsd: 1.25, outUsd: 5.00 },
+  'gemini-2.5-flash-lite': { label: 'Gemini 2.5 Flash-Lite (cheapest)', inUsd: 0.10, outUsd: 0.40 },
+  'gemini-2.5-flash':      { label: 'Gemini 2.5 Flash (recommended)',  inUsd: 0.30, outUsd: 2.50 },
+  'gemini-2.0-flash':      { label: 'Gemini 2.0 Flash',                inUsd: 0.10, outUsd: 0.40 },
+  'gemini-2.5-pro':        { label: 'Gemini 2.5 Pro (strongest)',      inUsd: 1.25, outUsd: 10.00 },
 };
-const DEFAULT_MODEL = 'gemini-2.0-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 const DAILY_QUESTION_CAP = Number(process.env.ASSISTANT_DAILY_QUESTION_CAP || 100);
 const MONTHLY_CAP_USD    = Number(process.env.ASSISTANT_MONTHLY_CAP_USD || 5);

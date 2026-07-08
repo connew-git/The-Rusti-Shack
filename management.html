@@ -1431,9 +1431,10 @@
 
     // Cheapest first; matches the MODELS allow-list in api/assistant-ask.js.
     var ASST_MODELS = [
-      { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (cheapest)' },
-      { id: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-      { id: 'gemini-1.5-pro',   label: 'Gemini 1.5 Pro (strongest)' },
+      { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite (cheapest)' },
+      { id: 'gemini-2.5-flash',      label: 'Gemini 2.5 Flash (recommended)' },
+      { id: 'gemini-2.0-flash',      label: 'Gemini 2.0 Flash' },
+      { id: 'gemini-2.5-pro',        label: 'Gemini 2.5 Pro (strongest)' },
     ];
 
     function initAssistant() {
@@ -1443,7 +1444,8 @@
 
       var sel = document.getElementById('asst-model');
       sel.innerHTML = ASST_MODELS.map(function (m) {
-        return '<option value="' + m.id + '">' + m.label + '</option>';
+        var selected = m.id === 'gemini-2.5-flash' ? ' selected' : '';
+        return '<option value="' + m.id + '"' + selected + '>' + m.label + '</option>';
       }).join('');
 
       document.getElementById('asst-form').addEventListener('submit', function (e) {
